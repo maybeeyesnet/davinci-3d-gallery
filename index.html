@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>达·芬奇手稿与机械发明 3D 数字展厅 | Three.js HDR 交互空间</title>
+  <title>新中式禅意水院会所 · 3D 景观建筑交互空间 | Three.js HDR 实景</title>
   <script type="importmap">
   {
     "imports": {
@@ -16,13 +16,13 @@
   </script>
   <style>
     :root {
-      --bg-glass: rgba(18, 20, 26, 0.78);
-      --bg-glass-light: rgba(255, 255, 255, 0.08);
-      --border-glass: rgba(255, 255, 255, 0.16);
-      --accent: #d4a359;
-      --accent-bright: #f3c677;
-      --text-main: #f4f4f6;
-      --text-muted: #a9b0bc;
+      --bg-glass: rgba(16, 22, 20, 0.78);
+      --bg-glass-light: rgba(255, 255, 255, 0.09);
+      --border-glass: rgba(212, 185, 132, 0.25);
+      --accent: #c9a769;
+      --accent-bright: #ebd099;
+      --text-main: #f3f5f2;
+      --text-muted: #aeb8b1;
     }
 
     * {
@@ -36,7 +36,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #0d0f12;
+      background: #cfd9df;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       color: var(--text-main);
     }
@@ -53,12 +53,12 @@
       height: 100%;
     }
 
-    /* 顶部导航栏 */
+    /* 顶部栏 */
     .top-bar {
       position: fixed;
-      top: 18px;
-      left: 22px;
-      right: 22px;
+      top: 16px;
+      left: 20px;
+      right: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -73,25 +73,25 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass);
       border-radius: 14px;
-      padding: 12px 18px;
+      padding: 11px 16px;
       display: flex;
       align-items: center;
-      gap: 14px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      gap: 12px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
     }
 
     .brand-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #d4a359, #8c5828);
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #c9a769, #6e552c);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 17px;
       color: #fff;
-      box-shadow: 0 4px 12px rgba(212, 163, 89, 0.35);
+      box-shadow: 0 4px 12px rgba(201, 167, 105, 0.35);
     }
 
     .brand-text h1 {
@@ -107,11 +107,10 @@
       margin-top: 2px;
     }
 
-    /* 顶部右侧控制按钮组 */
     .top-actions {
       pointer-events: auto;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
 
@@ -121,116 +120,44 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass);
       color: var(--text-main);
-      padding: 9px 15px;
+      padding: 8px 14px;
       border-radius: 10px;
       font-size: 12.5px;
       font-weight: 500;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       transition: all 0.2s ease;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+      text-decoration: none;
     }
 
     .pill-btn:hover {
-      background: rgba(212, 163, 89, 0.22);
-      border-color: var(--accent);
+      background: rgba(201, 167, 105, 0.24);
+      border-color: var(--accent-bright);
       transform: translateY(-1px);
     }
 
     .pill-btn.active {
-      background: linear-gradient(135deg, rgba(212, 163, 89, 0.32), rgba(140, 88, 40, 0.32));
+      background: linear-gradient(135deg, rgba(201, 167, 105, 0.35), rgba(110, 85, 44, 0.35));
       border-color: var(--accent-bright);
       color: var(--accent-bright);
     }
 
-    /* 右侧 HDR 与灯光控制面板 */
-    .hdr-panel {
-      position: fixed;
-      top: 84px;
-      right: 22px;
-      width: 280px;
-      background: var(--bg-glass);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border-glass);
-      border-radius: 14px;
-      padding: 16px;
-      z-index: 20;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-      transition: opacity 0.25s ease, transform 0.25s ease;
-    }
-
-    .hdr-panel.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateX(16px);
-    }
-
-    .panel-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--accent-bright);
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding-bottom: 8px;
-    }
-
-    .control-row {
-      margin-bottom: 11px;
-    }
-
-    .control-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 5px;
-    }
-
-    .control-label span.val {
-      color: var(--text-main);
-      font-variant-numeric: tabular-nums;
-      font-weight: 500;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-      height: 5px;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
-    select.hdr-select {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.45);
-      color: #fff;
-      border: 1px solid var(--border-glass);
-      border-radius: 8px;
-      padding: 7px 10px;
-      font-size: 12px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    /* 原图对比浮窗 */
+    /* 原图参照浮窗 */
     .ref-card {
       position: fixed;
-      top: 84px;
-      left: 22px;
-      width: 220px;
+      top: 80px;
+      left: 20px;
+      width: 250px;
       background: var(--bg-glass);
       backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass);
       border-radius: 12px;
       padding: 10px;
       z-index: 20;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
       transition: all 0.25s ease;
     }
 
@@ -254,13 +181,86 @@
       height: auto;
       border-radius: 8px;
       display: block;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    /* 右侧 HDR 与天光控制面板 */
+    .hdr-panel {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      width: 280px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-glass);
+      border-radius: 14px;
+      padding: 15px;
+      z-index: 20;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .hdr-panel.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(16px);
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-bright);
+      margin-bottom: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 7px;
+    }
+
+    .control-row {
+      margin-bottom: 10px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .control-label span.val {
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      height: 5px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    select.hdr-select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
     }
 
     /* 底部视角切换栏 */
     .bottom-bar {
       position: fixed;
-      bottom: 22px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--bg-glass);
@@ -268,19 +268,19 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass);
       border-radius: 14px;
-      padding: 8px 12px;
+      padding: 7px 10px;
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
       z-index: 20;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
     }
 
     .cam-btn {
       background: transparent;
       border: 1px solid transparent;
       color: var(--text-muted);
-      padding: 7px 13px;
+      padding: 7px 12px;
       border-radius: 9px;
       font-size: 12.5px;
       cursor: pointer;
@@ -294,7 +294,7 @@
     }
 
     .cam-btn.active {
-      background: rgba(212, 163, 89, 0.25);
+      background: rgba(201, 167, 105, 0.28);
       border-color: var(--accent);
       color: var(--accent-bright);
       font-weight: 600;
@@ -302,27 +302,27 @@
 
     .hint-bar {
       position: fixed;
-      bottom: 76px;
+      bottom: 72px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 17, 22, 0.72);
+      background: rgba(14, 19, 17, 0.75);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 6px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 15px;
       border-radius: 20px;
       font-size: 12px;
-      color: #d0d5df;
+      color: #d6e0d9;
       pointer-events: none;
       z-index: 15;
       white-space: nowrap;
     }
 
-    /* 鼠标悬停 3D 标签 Tooltip */
+    /* 悬停提示 Tooltip */
     #hover-tooltip {
       position: fixed;
       pointer-events: none;
       z-index: 30;
-      background: rgba(14, 16, 22, 0.88);
+      background: rgba(14, 20, 18, 0.9);
       backdrop-filter: blur(10px);
       border: 1px solid var(--accent);
       border-radius: 10px;
@@ -331,7 +331,7 @@
       opacity: 0;
       transition: opacity 0.12s ease;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-      max-width: 240px;
+      max-width: 250px;
     }
 
     #hover-tooltip.visible {
@@ -341,7 +341,6 @@
     #hover-tooltip .tt-tag {
       font-size: 10px;
       color: var(--accent-bright);
-      text-transform: uppercase;
       letter-spacing: 0.6px;
       font-weight: 600;
     }
@@ -359,11 +358,11 @@
       margin-top: 3px;
     }
 
-    /* 展品点击详情弹窗 Modal */
+    /* 点击详情弹窗 Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(6, 8, 12, 0.55);
+      background: rgba(8, 12, 10, 0.56);
       backdrop-filter: blur(6px);
       z-index: 50;
       display: flex;
@@ -372,7 +371,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease;
-      padding: 24px;
+      padding: 20px;
     }
 
     .modal-backdrop.open {
@@ -383,15 +382,14 @@
     .modal-card {
       width: 100%;
       max-width: 780px;
-      background: rgba(20, 23, 30, 0.92);
+      background: rgba(18, 25, 22, 0.94);
       backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(212, 163, 89, 0.4);
+      border: 1px solid rgba(201, 167, 105, 0.42);
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 310px 1fr;
       transform: translateY(16px) scale(0.97);
       transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -401,34 +399,33 @@
     }
 
     .modal-preview {
-      background: radial-gradient(circle at center, #2a241d 0%, #14161c 100%);
-      padding: 22px;
+      background: radial-gradient(circle at center, #25332c 0%, #121815 100%);
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       border-right: 1px solid rgba(255, 255, 255, 0.1);
-      position: relative;
     }
 
-    .modal-preview canvas, .modal-preview img {
+    .modal-preview img {
       width: 100%;
-      max-height: 290px;
+      max-height: 270px;
       object-fit: contain;
       border-radius: 10px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(212, 163, 89, 0.3);
+      border: 1px solid rgba(201, 167, 105, 0.32);
     }
 
     .modal-preview-caption {
-      margin-top: 12px;
+      margin-top: 10px;
       font-size: 11.5px;
       color: var(--text-muted);
       text-align: center;
     }
 
     .modal-body {
-      padding: 26px 28px;
+      padding: 24px 26px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -445,8 +442,8 @@
       display: inline-block;
       padding: 3px 10px;
       border-radius: 6px;
-      background: rgba(212, 163, 89, 0.18);
-      border: 1px solid rgba(212, 163, 89, 0.4);
+      background: rgba(201, 167, 105, 0.18);
+      border: 1px solid rgba(201, 167, 105, 0.4);
       color: var(--accent-bright);
       font-size: 11px;
       font-weight: 600;
@@ -454,14 +451,14 @@
     }
 
     .modal-title {
-      font-size: 22px;
+      font-size: 21px;
       font-weight: 700;
       color: #fff;
       line-height: 1.25;
     }
 
     .modal-subtitle {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--text-muted);
       margin-top: 4px;
     }
@@ -478,20 +475,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
       flex-shrink: 0;
-    }
-
-    .modal-close:hover {
-      background: rgba(235, 87, 87, 0.25);
-      border-color: #eb5757;
     }
 
     .modal-specs {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin: 16px 0;
+      margin: 15px 0;
       padding: 12px;
       background: rgba(255, 255, 255, 0.04);
       border-radius: 10px;
@@ -512,22 +503,22 @@
 
     .modal-desc {
       font-size: 13.5px;
-      line-height: 1.7;
-      color: #d6dae2;
-      margin-bottom: 20px;
+      line-height: 1.68;
+      color: #d6e0d9;
+      margin-bottom: 18px;
       user-select: text;
     }
 
     .modal-actions {
       display: flex;
-      gap: 10px;
+      gap: 9px;
       flex-wrap: wrap;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding-top: 16px;
+      padding-top: 14px;
     }
 
     .action-btn {
-      padding: 9px 16px;
+      padding: 8px 14px;
       border-radius: 9px;
       font-size: 12.5px;
       font-weight: 600;
@@ -538,18 +529,11 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
     }
 
     .action-btn.primary {
-      background: linear-gradient(135deg, #d4a359, #9b652d);
+      background: linear-gradient(135deg, #c9a769, #826432);
       border-color: var(--accent-bright);
-      color: #fff;
-    }
-
-    .action-btn:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.12);
     }
 
     @media (max-width: 760px) {
@@ -561,63 +545,19 @@
         align-items: stretch;
         gap: 8px;
       }
-      .brand-card {
-        padding: 8px 12px;
-      }
-      .brand-text h1 {
-        font-size: 13.5px;
-      }
-      .brand-text p {
-        font-size: 10.5px;
-      }
-      .top-actions {
-        overflow-x: auto;
-        padding-bottom: 2px;
-      }
-      .pill-btn {
-        padding: 6px 10px;
-        font-size: 11.5px;
-        white-space: nowrap;
-      }
-      .hdr-panel {
-        top: 112px;
-        right: 10px;
-        width: 240px;
-        padding: 12px;
-      }
-      .ref-card {
-        top: 112px;
-        left: 10px;
-        width: 150px;
-        padding: 7px;
-      }
-      .bottom-bar {
-        bottom: 12px;
-        max-width: 95vw;
-        overflow-x: auto;
-        padding: 6px 8px;
-      }
-      .hint-bar {
-        bottom: 62px;
-        font-size: 10.5px;
-        max-width: 92vw;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .modal-card {
-        grid-template-columns: 1fr;
-        max-height: 86vh;
-        overflow-y: auto;
-      }
-      .modal-preview {
-        padding: 14px;
-      }
-      .modal-preview img {
-        max-height: 180px;
-      }
-      .modal-body {
-        padding: 16px;
-      }
+      .brand-card { padding: 8px 12px; }
+      .brand-text h1 { font-size: 13.5px; }
+      .brand-text p { font-size: 10.5px; }
+      .top-actions { overflow-x: auto; padding-bottom: 2px; }
+      .pill-btn { padding: 6px 10px; font-size: 11.5px; white-space: nowrap; }
+      .hdr-panel { top: 112px; right: 10px; width: 245px; padding: 12px; }
+      .ref-card { top: 112px; left: 10px; width: 165px; padding: 7px; }
+      .bottom-bar { bottom: 12px; max-width: 95vw; overflow-x: auto; padding: 6px 8px; }
+      .hint-bar { bottom: 62px; font-size: 10.5px; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+      .modal-card { grid-template-columns: 1fr; max-height: 86vh; overflow-y: auto; }
+      .modal-preview { padding: 14px; }
+      .modal-preview img { max-height: 175px; }
+      .modal-body { padding: 16px; }
     }
   </style>
 </head>
@@ -627,173 +567,165 @@
   <!-- 顶部栏 -->
   <div class="top-bar">
     <div class="brand-card">
-      <div class="brand-badge">达</div>
+      <div class="brand-badge">院</div>
       <div class="brand-text">
-        <h1>达·芬奇机械发明与手稿 3D 数字展厅</h1>
-        <p>HDR 物理环境光影 · 28 件可点击交互展品 · WebGL PBR 实景还原</p>
+        <h1>新中式禅意水院会所 · 3D 景观建筑交互空间</h1>
+        <p>HDR 晨曦天光 · 池底弧纹镜池 · 造型罗汉松 · 8 处建筑园林点击弹窗</p>
       </div>
     </div>
 
     <div class="top-actions">
-      <button class="pill-btn active" id="btn-toggle-ref" title="显示或隐藏原照片对比">
+      <button class="pill-btn active" id="btn-toggle-ref">
         <span>🖼️ 原图对比</span>
       </button>
-      <button class="pill-btn active" id="btn-toggle-hotspots" title="显示或隐藏3D交互热点">
-        <span>✨ 交互热点</span>
+      <button class="pill-btn active" id="btn-toggle-hotspots">
+        <span>✨ 建筑园林热点</span>
       </button>
-      <button class="pill-btn active" id="btn-toggle-visitors" title="显示或隐藏展厅观众人物">
-        <span>🚶 展厅观众</span>
+      <button class="pill-btn active" id="btn-toggle-hdr">
+        <span>☀️ HDR 天光控制台</span>
       </button>
-      <button class="pill-btn active" id="btn-toggle-hdr" title="打开HDR与灯光调节面板">
-        <span>☀️ HDR 光影控制台</span>
-      </button>
+      <a class="pill-btn" href="./gallery.html" id="link-other-scene">
+        <span>🏛️ 切换展厅场景</span>
+      </a>
     </div>
   </div>
 
-  <!-- 左侧原照片对比卡片 -->
+  <!-- 左上角原图对比 -->
   <div class="ref-card" id="ref-card">
     <div class="ref-card-header">
-      <span>📸 实拍原图视角参照</span>
-      <span style="color: var(--accent-bright); cursor: pointer;" id="btn-match-photo">一键对齐机位</span>
+      <span>📸 实景效果图参照</span>
+      <span style="color: var(--accent-bright); cursor: pointer;" id="btn-match-photo">一键对齐原图</span>
     </div>
-    <img src="./reference.jpg" alt="展厅参考照片" />
+    <img src="./reference.png" alt="新中式庭院参考图" />
   </div>
 
-  <!-- 右侧 HDR 环境光影调节面板 -->
+  <!-- 右侧 HDR 环境光影与气象调节面板 -->
   <div class="hdr-panel" id="hdr-panel">
     <div class="panel-title">
-      <span>🌅 HDR 环境光影 (IBL) 调节</span>
-      <span id="hdr-status-badge" style="font-size:11px; color:#7ee787;">已激活</span>
+      <span>🌅 HDR 天光与庭院照明</span>
+      <span id="hdr-status-badge" style="font-size:11px; color:#8ce99a;">晨曦云雾 HDR</span>
     </div>
 
     <div class="control-row">
       <div class="control-label">
-        <span>HDR 环境贴图预设</span>
+        <span>HDR 天候与时段预设</span>
       </div>
       <select class="hdr-select" id="select-hdr-mode">
-        <option value="gallery_hdr">展厅定制浮点 HDR (32-bit 物理灯带)</option>
-        <option value="royal_hdr">皇家美术馆实景 .HDR (HDRLoader)</option>
-        <option value="room_env">柔和博物馆漫反射 (RoomEnvironment)</option>
+        <option value="morning">☀️ 晨曦云雾天光 (原图光影还原)</option>
+        <option value="sunset">🌇 夕阳晚照金辉 (暖金余晖)</option>
+        <option value="night">🌙 庭院月夜华灯 (大堂内透蓝调)</option>
       </select>
     </div>
 
     <div class="control-row">
       <div class="control-label">
-        <span>HDR 环境光强度 (IBL)</span>
-        <span class="val" id="val-env-intensity">0.85</span>
+        <span>HDR 天球环境光强度 (IBL)</span>
+        <span class="val" id="val-env-intensity">1.05</span>
       </div>
-      <input type="range" id="slider-env-intensity" min="0" max="2.5" step="0.05" value="0.85" />
+      <input type="range" id="slider-env-intensity" min="0.2" max="2.5" step="0.05" value="1.05" />
     </div>
 
     <div class="control-row">
       <div class="control-label">
-        <span>ACES 色调映射曝光度</span>
-        <span class="val" id="val-exposure">1.10</span>
+        <span>太阳方位角 (投射右墙斜影)</span>
+        <span class="val" id="val-sun-angle">-42°</span>
       </div>
-      <input type="range" id="slider-exposure" min="0.4" max="2.2" step="0.05" value="1.10" />
+      <input type="range" id="slider-sun-angle" min="-85" max="65" step="1" value="-42" />
     </div>
 
     <div class="control-row">
       <div class="control-label">
-        <span>HDR 环境光旋转角</span>
-        <span class="val" id="val-env-rot">0°</span>
+        <span>ACES 曝光度</span>
+        <span class="val" id="val-exposure">1.08</span>
       </div>
-      <input type="range" id="slider-env-rot" min="0" max="360" step="5" value="0" />
-    </div>
-
-    <div class="control-row">
-      <div class="control-label">
-        <span>导轨射灯照明强度</span>
-        <span class="val" id="val-spot-intensity">1.20</span>
-      </div>
-      <input type="range" id="slider-spot-intensity" min="0" max="2.5" step="0.05" value="1.20" />
+      <input type="range" id="slider-exposure" min="0.5" max="2.0" step="0.04" value="1.08" />
     </div>
 
     <div class="control-row" style="margin-bottom:0;">
       <div class="control-label">
-        <span>木地板清漆反射率 (Clearcoat)</span>
-        <span class="val" id="val-floor-coat">0.35</span>
+        <span>大堂室内暖光内透强度</span>
+        <span class="val" id="val-lobby-glow">1.35</span>
       </div>
-      <input type="range" id="slider-floor-coat" min="0" max="1" step="0.05" value="0.35" />
+      <input type="range" id="slider-lobby-glow" min="0" max="3.0" step="0.1" value="1.35" />
     </div>
   </div>
 
-  <!-- 操作提示条 -->
+  <!-- 提示条 -->
   <div class="hint-bar">
-    💡 鼠标左键拖拽旋转 · 右键平移 · 滚轮缩放 · <strong>点击任意木质机械展台、立牌或墙面画框</strong>弹出详情与机械互动
+    💡 拖拽旋转 · 滚轮/双指缩放 · <strong>点击中央玻璃门厅、池底弧纹镜面水池、造型罗汉松、微地形草坡或后方叠墅</strong>弹出详解
   </div>
 
   <!-- 底部机位导航栏 -->
   <div class="bottom-bar">
-    <button class="cam-btn active" data-cam="photo">📷 原照片机位</button>
-    <button class="cam-btn" data-cam="crane">⚙️ 1号展台：起重机特写</button>
-    <button class="cam-btn" data-cam="gears">🔧 2号展台：多级齿轮组</button>
-    <button class="cam-btn" data-cam="left_wall">🖼️ 左墙手稿画廊</button>
-    <button class="cam-btn" data-cam="right_wall">🎨 右墙手稿画廊</button>
-    <button class="cam-btn" data-cam="overview">🏛️ 展厅纵深全景</button>
+    <button class="cam-btn active" data-cam="photo">📷 原图透视机位</button>
+    <button class="cam-btn" data-cam="pavilion">🏛️ 中央玻璃门厅</button>
+    <button class="cam-btn" data-cam="pond">🌊 曲水池底弧纹</button>
+    <button class="cam-btn" data-cam="pine_right">🌲 东侧造型罗汉松</button>
+    <button class="cam-btn" data-cam="mound_left">⛰️ 西侧微地形景石</button>
+    <button class="cam-btn" data-cam="aerial">🦅 庭院鸟瞰全景</button>
   </div>
 
   <!-- 悬停提示 -->
   <div id="hover-tooltip">
-    <div class="tt-tag" id="tt-tag">机械发明展品</div>
-    <div class="tt-title" id="tt-title">起重机 (Hoist Machine)</div>
-    <div class="tt-sub" id="tt-sub">点击查看手稿原理解析与3D互动</div>
+    <div class="tt-tag" id="tt-tag">新中式建筑核心构件</div>
+    <div class="tt-title" id="tt-title">中央迎宾玻璃门厅</div>
+    <div class="tt-sub" id="tt-sub">点击查看建筑构造与景观解析</div>
   </div>
 
   <!-- 点击详情弹窗 Modal -->
   <div class="modal-backdrop" id="exhibit-modal">
     <div class="modal-card">
       <div class="modal-preview">
-        <img id="modal-img" src="" alt="展品高清预览" />
-        <div class="modal-preview-caption" id="modal-caption">手稿与展品复原图</div>
+        <img id="modal-img" src="" alt="节点图纸预览" />
+        <div class="modal-preview-caption" id="modal-caption">建筑与园林节点构造解析图</div>
       </div>
       <div class="modal-body">
         <div>
           <div class="modal-header">
             <div>
-              <span class="modal-category" id="modal-category">中央木质机械展台 · 01</span>
-              <h2 class="modal-title" id="modal-title">起重机 (Da Vinci Hoist Crane)</h2>
-              <p class="modal-subtitle" id="modal-subtitle">《大西洋古抄本》第 30v 页 · 约 1480–1485 年</p>
+              <span class="modal-category" id="modal-category">主轴核心建筑 · A-01</span>
+              <h2 class="modal-title" id="modal-title">中央禅意门厅与香槟铜格栅冠顶</h2>
+              <p class="modal-subtitle" id="modal-subtitle">水平舒展挑檐 · 超白玻幕墙 · 室内山水屏风内透</p>
             </div>
             <button class="modal-close" id="modal-close" title="关闭弹窗">×</button>
           </div>
 
           <div class="modal-specs">
             <div class="spec-item">
-              <div class="spec-label">展品编号 / 区域</div>
-              <div class="spec-val" id="spec-id">M-01 · 中轴线前排</div>
+              <div class="spec-label">节点编号 / 区域</div>
+              <div class="spec-val" id="spec-id">L-01 · 礼仪中轴北端</div>
             </div>
             <div class="spec-item">
-              <div class="spec-label">复原材质</div>
-              <div class="spec-val" id="spec-material">北美胡桃木 / 黄铜齿轮 / 麻绳</div>
+              <div class="spec-label">主要材料工艺</div>
+              <div class="spec-val" id="spec-material">香槟古铜铝方通 / 超白夹胶玻璃 / 芝麻白荔枝面</div>
             </div>
             <div class="spec-item">
-              <div class="spec-label">核心机械原理</div>
-              <div class="spec-val" id="spec-principle">蜗杆自锁与棘轮减速扭矩放大</div>
+              <div class="spec-label">空间设计手法</div>
+              <div class="spec-val" id="spec-principle">框景借景 · 室内外水院渗透</div>
             </div>
             <div class="spec-item">
-              <div class="spec-label">互动状态</div>
-              <div class="spec-val" id="spec-status" style="color: #7ee787;">支持 3D 摇柄动态运转</div>
+              <div class="spec-label">光影交互特性</div>
+              <div class="spec-val" id="spec-status" style="color: #8ce99a;">支持晨曦/夕阳/月夜三态切换</div>
             </div>
           </div>
 
           <p class="modal-desc" id="modal-desc">
-            这台立式木质起重机复原自列奥纳多·达·芬奇在佛罗伦萨圣母百花大教堂施工期间研究的手稿。通过侧向曲柄摇把驱动箱体内部的黄铜棘轮与木质主轴，利用力矩放大原理使单名工匠即可平稳吊起数百公斤的建筑石料，并具备防倒转自锁保护。
+            门厅采用新中式现代主义水平延展构图，底部以深古铜色竖向槽钢门套框定通透的超白玻大堂，内部隐约透出暖色禅意山水绢本屏风与暖光地面反射；屋顶上方冠以精细的香槟金竖向金属百叶格栅，与两侧围合石墙形成庄重而静谧的归家礼序。
           </p>
         </div>
 
         <div class="modal-actions">
-          <button class="action-btn primary" id="btn-modal-animate">
-            <span>⚙️ 摇动曲柄演示机械运转</span>
+          <button class="action-btn primary" id="btn-modal-time">
+            <span>🌇 切换晨曦/夕阳/夜景光影</span>
           </button>
           <button class="action-btn" id="btn-modal-voice">
-            <span>🔊 语音导览讲解</span>
+            <span>🔊 语音导览播报</span>
           </button>
           <button class="action-btn" id="btn-modal-next">
-            <span>➡️ 下一件展品</span>
+            <span>➡️ 下一处景观节点</span>
           </button>
           <button class="action-btn" id="btn-modal-reset-cam">
-            <span>📷 返回原照片视角</span>
+            <span>📷 返回原图视角</span>
           </button>
         </div>
       </div>
@@ -803,73 +735,82 @@
   <script type="module">
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 /**
- * 1. 创建真实的 32-bit Float HDR 等距柱状环境贴图 (Equirectangular Reflection Mapping)
- * 模拟展厅顶部双排轨道射灯高光 (亮度达 12.0+)、中央筒灯、白墙漫反射与暖木地板反弹光
+ * 1. 创建 32-bit Float HDR 天球环境贴图 (支持 晨曦云雾 / 夕阳晚照 / 庭院月夜 三种模式)
  */
-function createGalleryHDRTexture() {
+function createCourtyardHDRTexture(mode = "morning") {
   const width = 512;
   const height = 256;
   const data = new Float32Array(width * height * 4);
 
   for (let y = 0; y < height; y++) {
-    // v: 0 (底部地面) -> 1 (顶部天花板)
-    const v = y / (height - 1);
-    const theta = (1 - v) * Math.PI; // 0 = 天顶, PI = 天底
+    const v = y / (height - 1); // 0 = 地面, 1 = 天顶
+    const theta = (1 - v) * Math.PI;
 
     for (let x = 0; x < width; x++) {
       const u = x / (width - 1);
       const phi = u * Math.PI * 2;
 
-      let r = 0.45;
-      let g = 0.43;
-      let b = 0.40;
+      const dirX = Math.sin(theta) * Math.cos(phi);
+      const dirY = Math.cos(theta);
+      const dirZ = Math.sin(theta) * Math.sin(phi);
 
-      if (v > 0.55) {
-        // 上半球：白色天花板与高动态范围射灯灯带
-        const ceilFactor = (v - 0.55) / 0.45;
-        r = 0.82 + 0.15 * ceilFactor;
-        g = 0.80 + 0.14 * ceilFactor;
-        b = 0.76 + 0.12 * ceilFactor;
+      let r = 0.5, g = 0.55, b = 0.6;
 
-        // 模拟左右两侧长条轨道射灯的强烈 HDR 高光点 (用于材质清漆与黄铜齿轮反射)
-        const dirX = Math.sin(theta) * Math.cos(phi);
-        const dirZ = Math.sin(theta) * Math.sin(phi);
+      if (mode === "morning") {
+        if (v >= 0.48) {
+          // 上半球：原图左上偏青蓝、中右泛晨雾柔白的天空渐变
+          const hFactor = Math.pow((v - 0.48) / 0.52, 0.75);
+          // 顶部青蓝 (#a9c4d6) -> 地平线晨雾白 (#eef3f6)
+          r = THREE.MathUtils.lerp(0.95, 0.62, hFactor);
+          g = THREE.MathUtils.lerp(0.96, 0.77, hFactor);
+          b = THREE.MathUtils.lerp(0.98, 0.86, hFactor);
 
-        // 左右两条平行灯轨高光
-        const railDist = Math.min(Math.abs(dirX - 0.42), Math.abs(dirX + 0.42));
-        if (railDist < 0.08 && Math.abs(dirZ) < 0.88) {
-          const spotWave = Math.pow(Math.max(0, Math.cos(dirZ * 22.0)), 6.0);
-          const railGlow = Math.exp(- (railDist * railDist) / 0.0018) * (1.5 + 10.5 * spotWave);
-          r += railGlow * 1.15;
-          g += railGlow * 1.02;
-          b += railGlow * 0.82;
+          // 左上方太阳高光 (向右下投射清晰的屋檐与松树斜影)
+          const sunDir = new THREE.Vector3(-0.62, 0.52, 0.58).normalize();
+          const dot = Math.max(0, dirX * sunDir.x + dirY * sunDir.y + dirZ * sunDir.z);
+          const sunGlow = Math.pow(dot, 28.0) * 6.5 + Math.pow(dot, 4.0) * 0.45;
+          r += sunGlow * 1.12;
+          g += sunGlow * 1.05;
+          b += sunGlow * 0.92;
+        } else {
+          // 下半球：青苔草坡与深碧池水的环境反弹光
+          const gFactor = v / 0.48;
+          r = 0.16 + 0.14 * gFactor;
+          g = 0.24 + 0.18 * gFactor;
+          b = 0.14 + 0.12 * gFactor;
         }
+      } else if (mode === "sunset") {
+        if (v >= 0.48) {
+          const hFactor = Math.pow((v - 0.48) / 0.52, 0.8);
+          r = THREE.MathUtils.lerp(1.15, 0.32, hFactor);
+          g = THREE.MathUtils.lerp(0.72, 0.36, hFactor);
+          b = THREE.MathUtils.lerp(0.45, 0.58, hFactor);
 
-        // 天顶中央筒灯阵列高光
-        const centerDist = Math.abs(dirX);
-        if (centerDist < 0.06 && Math.abs(dirZ) < 0.85) {
-          const downlight = Math.pow(Math.max(0, Math.cos(dirZ * 14.0)), 8.0);
-          const glow = Math.exp(-(centerDist * centerDist) / 0.0012) * 8.0 * downlight;
-          r += glow * 1.1;
-          g += glow * 1.05;
-          b += glow * 0.95;
+          const sunDir = new THREE.Vector3(-0.7, 0.32, 0.62).normalize();
+          const dot = Math.max(0, dirX * sunDir.x + dirY * sunDir.y + dirZ * sunDir.z);
+          const sunGlow = Math.pow(dot, 22.0) * 8.0 + Math.pow(dot, 3.5) * 0.65;
+          r += sunGlow * 1.35;
+          g += sunGlow * 0.85;
+          b += sunGlow * 0.42;
+        } else {
+          r = 0.22;
+          g = 0.18;
+          b = 0.12;
         }
-      } else if (v > 0.42) {
-        // 水平方向：暖白色展墙漫反射带
-        const wallWave = 0.08 * Math.sin(phi * 16.0);
-        r = 0.92 + wallWave;
-        g = 0.88 + wallWave * 0.9;
-        b = 0.80 + wallWave * 0.7;
       } else {
-        // 下半球：暖橡木地板反射色
-        const floorFactor = v / 0.42;
-        r = 0.36 + 0.18 * floorFactor;
-        g = 0.25 + 0.13 * floorFactor;
-        b = 0.15 + 0.08 * floorFactor;
+        // 庭院月夜蓝调时刻 (Blue Hour Night)
+        if (v >= 0.48) {
+          const hFactor = Math.pow((v - 0.48) / 0.52, 0.85);
+          r = THREE.MathUtils.lerp(0.14, 0.05, hFactor);
+          g = THREE.MathUtils.lerp(0.21, 0.09, hFactor);
+          b = THREE.MathUtils.lerp(0.34, 0.18, hFactor);
+        } else {
+          r = 0.08;
+          g = 0.10;
+          b = 0.09;
+        }
       }
 
       const idx = (y * width + x) * 4;
@@ -890,298 +831,365 @@ function createGalleryHDRTexture() {
 }
 
 /**
- * 2. 创建展厅横向铺设的浅暖橡木地板 PBR 贴图组 (Map + Bump + Roughness)
+ * 2. 创建原图左前景池底标志性的“弧形深浅石材水波纹条带”贴图 + 水波纹凹凸贴图
  */
-function createOakFloorTextures(maxAnisotropy = 8) {
+function createPondTextures(maxAniso = 8) {
   const w = 1024;
   const h = 1024;
-
-  const colorCanvas = document.createElement("canvas");
-  colorCanvas.width = w;
-  colorCanvas.height = h;
-  const ctx = colorCanvas.getContext("2d");
-
-  const roughCanvas = document.createElement("canvas");
-  roughCanvas.width = w;
-  roughCanvas.height = h;
-  const rCtx = roughCanvas.getContext("2d");
-
-  // 铺底色
-  ctx.fillStyle = "#b08b63";
-  ctx.fillRect(0, 0, w, h);
-  rCtx.fillStyle = "#888888";
-  rCtx.fillRect(0, 0, w, h);
-
-  // 照片中木地板纹理为横向条纹（沿 X 轴方向延伸的木板条）
-  const rows = 18;
-  const plankH = h / rows;
-
-  let seed = 1337;
-  const rand = () => {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-  };
-
-  for (let row = 0; row < rows; row++) {
-    const y0 = row * plankH;
-    const cols = 3;
-    const shift = (row % 2) * (w / 6) + (rand() - 0.5) * 60;
-
-    for (let col = -1; col <= cols; col++) {
-      const plankW = w / cols;
-      const x0 = col * plankW + shift;
-
-      // 每块木板的微调色差 (加深暖橡木色泽以匹配实拍照片)
-      const dh = (rand() - 0.5) * 18;
-      const baseR = Math.min(255, Math.max(0, 146 + dh));
-      const baseG = Math.min(255, Math.max(0, 108 + dh * 0.78));
-      const baseB = Math.min(255, Math.max(0, 74 + dh * 0.62));
-
-      ctx.fillStyle = `rgb(${baseR | 0}, ${baseG | 0}, ${baseB | 0})`;
-      ctx.fillRect(x0, y0, plankW, plankH);
-
-      // 粗糙度微差
-      const rVal = 115 + (rand() - 0.5) * 32;
-      rCtx.fillStyle = `rgb(${rVal | 0}, ${rVal | 0}, ${rVal | 0})`;
-      rCtx.fillRect(x0, y0, plankW, plankH);
-
-      // 绘制细腻的木纹纤维线
-      for (let g = 0; g < 28; g++) {
-        const gy = y0 + rand() * plankH;
-        const alpha = 0.08 + rand() * 0.12;
-        ctx.strokeStyle = rand() > 0.4 ? `rgba(68, 40, 18, ${alpha})` : `rgba(192, 152, 110, ${alpha * 0.65})`;
-        ctx.lineWidth = 0.8 + rand() * 1.6;
-        ctx.beginPath();
-        ctx.moveTo(x0, gy);
-        const midY = gy + (rand() - 0.5) * 6;
-        ctx.quadraticCurveTo(x0 + plankW * 0.5, midY, x0 + plankW, gy + (rand() - 0.5) * 4);
-        ctx.stroke();
-      }
-
-      // 木板接缝
-      ctx.strokeStyle = "rgba(62, 40, 22, 0.45)";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(x0, y0, plankW, plankH);
-
-      rCtx.strokeStyle = "rgb(220, 220, 220)";
-      rCtx.lineWidth = 2;
-      rCtx.strokeRect(x0, y0, plankW, plankH);
-    }
-  }
-
-  const map = new THREE.CanvasTexture(colorCanvas);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.wrapS = THREE.RepeatWrapping;
-  map.wrapT = THREE.RepeatWrapping;
-  map.repeat.set(3.5, 9.0);
-  map.anisotropy = maxAnisotropy;
-
-  const roughnessMap = new THREE.CanvasTexture(roughCanvas);
-  roughnessMap.wrapS = THREE.RepeatWrapping;
-  roughnessMap.wrapT = THREE.RepeatWrapping;
-  roughnessMap.repeat.set(3.5, 9.0);
-  roughnessMap.anisotropy = maxAnisotropy;
-
-  return { map, roughnessMap, bumpMap: roughnessMap };
-}
-
-/**
- * 3. 创建展厅左右白墙纹理（带照片中特有的竖向浮雕方格肌理 + 顶部轨道射灯洗墙光弧）
- */
-function createSideWallTextures(maxAnisotropy = 8) {
-  const w = 2048;
-  const h = 512;
-
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
 
-  // 基础暖白墙面
-  const baseGrad = ctx.createLinearGradient(0, 0, 0, h);
-  baseGrad.addColorStop(0.0, "#e6e4df");
-  baseGrad.addColorStop(0.28, "#f7f6f2");
-  baseGrad.addColorStop(0.85, "#efede8");
-  baseGrad.addColorStop(1.0, "#dcd9d0");
-  ctx.fillStyle = baseGrad;
+  // 深青黛色池底基色 (加深翡翠墨绿水底色泽以还原原图左前景深邃水色)
+  const bgGrad = ctx.createRadialGradient(w * 0.32, h * 0.78, 30, w * 0.45, h * 0.65, w * 0.65);
+  bgGrad.addColorStop(0.0, "#1d3330");
+  bgGrad.addColorStop(0.5, "#152623");
+  bgGrad.addColorStop(1.0, "#0d1816");
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, w, h);
 
-  // 照片中墙面具有细密竖向竹节/吸音板凹凸纹理
-  ctx.strokeStyle = "rgba(180, 176, 168, 0.24)";
-  ctx.lineWidth = 1;
-  for (let x = 0; x < w; x += 6) {
+  // 绘制照片左前景水下清晰的同心/流线弧形铺装条带 (Curved Zen Bands)
+  // 池面平面中心在 (-1.5, 4.5), 尺寸 28x28 -> 左前景水湾对应 UV 的左下区域 (x: 0.15~0.52, y: 0.58~0.95)
+  ctx.save();
+  const arcCenterX = w * 0.54;
+  const arcCenterY = h * 0.92;
+  const radii = [110, 145, 195, 230, 285, 320, 375, 410];
+  radii.forEach((rad, i) => {
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
+    ctx.arc(arcCenterX, arcCenterY, rad, Math.PI * 0.92, Math.PI * 1.62);
+    ctx.strokeStyle = i % 2 === 0 ? "rgba(78, 112, 118, 0.82)" : "rgba(12, 22, 24, 0.92)";
+    ctx.lineWidth = i % 2 === 0 ? 18 : 14;
     ctx.stroke();
-  }
-  ctx.strokeStyle = "rgba(180, 176, 168, 0.16)";
-  for (let y = 0; y < h; y += 14) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
+  });
+  ctx.restore();
 
-  // 叠加 12 盏轨道射灯投射在墙面上的柔美暖色扇形洗墙光斑 (Scalloped Light Arcs)
-  const numLights = 12;
-  for (let i = 0; i < numLights; i++) {
-    const cx = ((i + 0.5) / numLights) * w;
-    // 上方弧形射灯洗墙光晕
-    const radGrad = ctx.createRadialGradient(cx, h * 0.16, 8, cx, h * 0.42, h * 0.42);
-    radGrad.addColorStop(0.0, "rgba(255, 250, 238, 0.72)");
-    radGrad.addColorStop(0.45, "rgba(255, 246, 228, 0.35)");
-    radGrad.addColorStop(1.0, "rgba(255, 244, 225, 0.0)");
-    ctx.fillStyle = radGrad;
-    ctx.fillRect(cx - h * 0.45, 0, h * 0.9, h * 0.85);
-  }
-
-  // 仅用于凹凸的细密网格贴图
+  // 水面微涟漪凹凸贴图
   const bumpCanvas = document.createElement("canvas");
   bumpCanvas.width = 512;
   bumpCanvas.height = 512;
   const bCtx = bumpCanvas.getContext("2d");
   bCtx.fillStyle = "#808080";
   bCtx.fillRect(0, 0, 512, 512);
-  bCtx.fillStyle = "#a8a8a8";
-  for (let x = 0; x < 512; x += 8) {
-    bCtx.fillRect(x, 0, 4, 512);
+
+  for (let y = 0; y < 512; y += 4) {
+    for (let x = 0; x < 512; x += 4) {
+      const wave =
+        Math.sin(x * 0.06 + y * 0.03) * 18 +
+        Math.cos(x * 0.03 - y * 0.08) * 14;
+      const v = Math.min(255, Math.max(0, (128 + wave) | 0));
+      bCtx.fillStyle = `rgb(${v},${v},${v})`;
+      bCtx.fillRect(x, y, 4, 4);
+    }
   }
-  bCtx.fillStyle = "#666666";
-  for (let y = 0; y < 512; y += 16) {
-    bCtx.fillRect(0, y, 512, 2);
-  }
 
-  const map = new THREE.CanvasTexture(canvas);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.anisotropy = maxAnisotropy;
+  const bottomMap = new THREE.CanvasTexture(canvas);
+  bottomMap.colorSpace = THREE.SRGBColorSpace;
+  bottomMap.anisotropy = maxAniso;
 
-  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
-  bumpMap.wrapS = THREE.RepeatWrapping;
-  bumpMap.wrapT = THREE.RepeatWrapping;
-  bumpMap.repeat.set(16, 4);
+  const waterBump = new THREE.CanvasTexture(bumpCanvas);
+  waterBump.wrapS = THREE.RepeatWrapping;
+  waterBump.wrapT = THREE.RepeatWrapping;
+  waterBump.repeat.set(6, 6);
 
-  return { map, bumpMap };
+  return { bottomMap, waterBump };
 }
 
 /**
- * 4. 创建深胡桃木纹理（用于前景展台桌面、立式起重机木梁与斜立展签框）
+ * 3. 创建微地形果岭草坡与苔藓肌理 PBR 贴图
  */
-function createWalnutTextures(maxAnisotropy = 8) {
-  const w = 512;
-  const h = 512;
+function createVelvetGrassTextures(maxAniso = 8) {
+  const size = 512;
   const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#3b2313";
-  ctx.fillRect(0, 0, w, h);
+  const bumpCanvas = document.createElement("canvas");
+  bumpCanvas.width = size;
+  bumpCanvas.height = size;
+  const bCtx = bumpCanvas.getContext("2d");
 
-  let s = 42;
-  const rnd = () => {
-    s = (s * 16807) % 2147483647;
-    return (s - 1) / 2147483646;
+  ctx.fillStyle = "#4d663e";
+  ctx.fillRect(0, 0, size, size);
+  bCtx.fillStyle = "#808080";
+  bCtx.fillRect(0, 0, size, size);
+
+  let seed = 901;
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
   };
 
-  for (let i = 0; i < 180; i++) {
-    const y = rnd() * h;
-    const hBand = 2 + rnd() * 10;
-    ctx.fillStyle = rnd() > 0.5 ? "rgba(28, 14, 6, 0.28)" : "rgba(82, 50, 26, 0.22)";
-    ctx.fillRect(0, y, w, hBand);
+  // 自然草甸明暗色斑
+  for (let i = 0; i < 260; i++) {
+    const x = rand() * size;
+    const y = rand() * size;
+    const r = 18 + rand() * 48;
+    const grad = ctx.createRadialGradient(x, y, 2, x, y, r);
+    if (rand() > 0.45) {
+      grad.addColorStop(0, "rgba(106, 134, 78, 0.26)");
+      grad.addColorStop(1, "rgba(106, 134, 78, 0)");
+    } else {
+      grad.addColorStop(0, "rgba(44, 62, 34, 0.28)");
+      grad.addColorStop(1, "rgba(44, 62, 34, 0)");
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+
+  // 细密草叶纤维噪点
+  for (let i = 0; i < 9000; i++) {
+    const x = rand() * size;
+    const y = rand() * size;
+    const isLight = rand() > 0.5;
+    ctx.fillStyle = isLight ? "rgba(128, 156, 94, 0.35)" : "rgba(38, 54, 28, 0.38)";
+    ctx.fillRect(x, y, 2, 3);
+
+    const bv = isLight ? 165 : 90;
+    bCtx.fillStyle = `rgb(${bv},${bv},${bv})`;
+    bCtx.fillRect(x, y, 2, 2);
   }
 
   const map = new THREE.CanvasTexture(canvas);
   map.colorSpace = THREE.SRGBColorSpace;
   map.wrapS = THREE.RepeatWrapping;
   map.wrapT = THREE.RepeatWrapping;
-  map.anisotropy = maxAnisotropy;
+  map.repeat.set(8, 8);
+  map.anisotropy = maxAniso;
+
+  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+  bumpMap.wrapS = THREE.RepeatWrapping;
+  bumpMap.wrapT = THREE.RepeatWrapping;
+  bumpMap.repeat.set(12, 12);
+
+  return { map, bumpMap };
+}
+
+/**
+ * 4. 创建灌木球与罗汉松针叶团簇的高频植物叶片凹凸与色彩贴图
+ */
+function createFoliageTextures(baseHex = "#3d5431") {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  const bumpCanvas = document.createElement("canvas");
+  bumpCanvas.width = size;
+  bumpCanvas.height = size;
+  const bCtx = bumpCanvas.getContext("2d");
+
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, size, size);
+  bCtx.fillStyle = "#707070";
+  bCtx.fillRect(0, 0, size, size);
+
+  let s = 307;
+  const rnd = () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+
+  for (let i = 0; i < 3600; i++) {
+    const x = rnd() * size;
+    const y = rnd() * size;
+    const rad = 1.5 + rnd() * 3.2;
+    const bright = rnd();
+    if (bright > 0.62) {
+      ctx.fillStyle = "rgba(118, 146, 82, 0.42)";
+      bCtx.fillStyle = "#d8d8d8";
+    } else if (bright > 0.28) {
+      ctx.fillStyle = "rgba(68, 92, 48, 0.45)";
+      bCtx.fillStyle = "#989898";
+    } else {
+      ctx.fillStyle = "rgba(24, 36, 18, 0.52)";
+      bCtx.fillStyle = "#303030";
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+
+    bCtx.beginPath();
+    bCtx.arc(x, y, rad, 0, Math.PI * 2);
+    bCtx.fill();
+  }
+
+  const map = new THREE.CanvasTexture(canvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.wrapS = THREE.RepeatWrapping;
+  map.wrapT = THREE.RepeatWrapping;
+  map.repeat.set(3, 3);
+
+  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+  bumpMap.wrapS = THREE.RepeatWrapping;
+  bumpMap.wrapT = THREE.RepeatWrapping;
+  bumpMap.repeat.set(3, 3);
+
+  return { map, bumpMap };
+}
+
+/**
+ * 5. 创建浅灰芝麻白荔枝面花岗岩分缝石墙贴图 (Ashlar Stone Wall)
+ */
+function createStoneWallTextures(maxAniso = 8) {
+  const w = 1024;
+  const h = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#d2d6d9";
+  ctx.fillRect(0, 0, w, h);
+
+  const rows = 4;
+  const cols = 6;
+  const bh = h / rows;
+  const bw = w / cols;
+
+  let s = 77;
+  const rnd = () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = c * bw;
+      const y = r * bh;
+      const d = (rnd() - 0.5) * 10;
+      const v = (208 + d) | 0;
+      ctx.fillStyle = `rgb(${v}, ${v + 3}, ${v + 6})`;
+      ctx.fillRect(x, y, bw, bh);
+
+      // 石材表面微颗粒噪点
+      for (let n = 0; n < 120; n++) {
+        ctx.fillStyle = rnd() > 0.5 ? "rgba(255,255,255,0.18)" : "rgba(120,128,135,0.18)";
+        ctx.fillRect(x + rnd() * bw, y + rnd() * bh, 3, 3);
+      }
+
+      // 分缝线
+      ctx.strokeStyle = "rgba(88, 94, 100, 0.65)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x, y, bw, bh);
+    }
+  }
+
+  const map = new THREE.CanvasTexture(canvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.wrapS = THREE.RepeatWrapping;
+  map.wrapT = THREE.RepeatWrapping;
+  map.anisotropy = maxAniso;
   return map;
 }
 
 /**
- * 5. 创建前景斜立展签牌贴图（精准还原照片中的“起重机”白底黑字展牌）
+ * 6. 创建中央门厅顶部香槟古铜竖向格栅贴图 (Vertical Bronze Louvers)
  */
-function createLecternSignTexture(title, enTitle, lines) {
+function createBronzeLouverTexture(maxAniso = 8) {
+  const w = 1024;
+  const h = 256;
   const canvas = document.createElement("canvas");
-  canvas.width = 1024;
-  canvas.height = 680;
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d");
 
-  // 象牙白高级卡纸底色
-  ctx.fillStyle = "#f5f4ef";
-  ctx.fillRect(0, 0, 1024, 680);
+  ctx.fillStyle = "#2b241b";
+  ctx.fillRect(0, 0, w, h);
 
-  // 细边框装饰线
-  ctx.strokeStyle = "#d5d1c6";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(28, 28, 968, 624);
+  const slats = 72;
+  const step = w / slats;
+  for (let i = 0; i < slats; i++) {
+    const x = i * step;
+    const grad = ctx.createLinearGradient(x, 0, x + step, 0);
+    grad.addColorStop(0.0, "#382e22");
+    grad.addColorStop(0.25, "#9c8259");
+    grad.addColorStop(0.55, "#b5996d");
+    grad.addColorStop(0.8, "#635036");
+    grad.addColorStop(1.0, "#241d15");
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, 8, step * 0.78, h - 16);
+  }
 
-  // 左侧大标题（如照片中的“起重机”）
-  ctx.fillStyle = "#1c1c1c";
-  ctx.font = "bold 64px 'PingFang SC', 'Microsoft YaHei', serif";
-  ctx.fillText(title, 90, 165);
+  // 顶底金属压边横梁
+  ctx.fillStyle = "#7a6546";
+  ctx.fillRect(0, 0, w, 10);
+  ctx.fillRect(0, h - 10, w, 10);
 
-  ctx.fillStyle = "#5a5852";
-  ctx.font = "600 26px 'Segoe UI', sans-serif";
-  ctx.fillText(enTitle, 92, 212);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.anisotropy = maxAniso;
+  return tex;
+}
 
-  // 分隔细线
-  ctx.strokeStyle = "#8c7a65";
-  ctx.lineWidth = 3;
+/**
+ * 7. 创建中央玻璃门厅内部暖光禅意山水屏风与大堂内透贴图
+ */
+function createLobbyInteriorTexture() {
+  const w = 1024;
+  const h = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+
+  // 暖米金色室内背景与地面暖光渐变（增强大堂内部建筑层次感）
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0.0, "#4a463f");
+  bg.addColorStop(0.22, "#787268");
+  bg.addColorStop(0.62, "#b5ab99");
+  bg.addColorStop(0.85, "#d8c69c");
+  bg.addColorStop(1.0, "#e8cf8e");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // 室内深色吊顶格栅横梁
+  ctx.fillStyle = "#36322d";
+  ctx.fillRect(0, 0, w, 46);
+
+  // 远山写意水墨层叠晕染
+  ctx.fillStyle = "rgba(68, 76, 74, 0.42)";
   ctx.beginPath();
-  ctx.moveTo(90, 242);
-  ctx.lineTo(930, 242);
-  ctx.stroke();
+  ctx.moveTo(0, h * 0.65);
+  ctx.quadraticCurveTo(w * 0.25, h * 0.32, w * 0.52, h * 0.56);
+  ctx.quadraticCurveTo(w * 0.78, h * 0.35, w, h * 0.60);
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.fill();
 
-  // 正文说明段落
-  ctx.fillStyle = "#2c2b29";
-  ctx.font = "27px 'PingFang SC', 'Microsoft YaHei', sans-serif";
-  lines.forEach((line, idx) => {
-    ctx.fillText(line, 90, 310 + idx * 52);
+  // 室内两侧半透木格栅屏风加深色块
+  ctx.fillStyle = "rgba(52, 46, 38, 0.32)";
+  ctx.fillRect(40, 46, 210, h - 90);
+  ctx.fillRect(w - 250, 46, 210, h - 90);
+
+  // 室内竖向细木格栅屏风纹理
+  ctx.strokeStyle = "rgba(58, 48, 36, 0.48)";
+  ctx.lineWidth = 2.5;
+  for (let x = 36; x < w - 36; x += 10) {
+    ctx.beginPath();
+    ctx.moveTo(x, 46);
+    ctx.lineTo(x, h - 30);
+    ctx.stroke();
+  }
+
+  // 玻璃幕墙竖向深色框线与门扇横梁
+  ctx.strokeStyle = "rgba(38, 35, 30, 0.85)";
+  ctx.lineWidth = 7;
+  [w * 0.18, w * 0.36, w * 0.64, w * 0.82].forEach((mx) => {
+    ctx.beginPath();
+    ctx.moveTo(mx, 0);
+    ctx.lineTo(mx, h);
+    ctx.stroke();
   });
-
-  // 右下角手稿微缩装饰印章
-  ctx.strokeStyle = "rgba(155, 105, 55, 0.45)";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 5;
   ctx.beginPath();
-  ctx.arc(870, 540, 48, 0, Math.PI * 2);
+  ctx.moveTo(0, h * 0.22);
+  ctx.lineTo(w, h * 0.22);
   ctx.stroke();
-  ctx.fillStyle = "rgba(155, 105, 55, 0.65)";
-  ctx.font = "italic 18px Georgia, serif";
-  ctx.fillText("Codex", 844, 536);
-  ctx.fillText("Atlanticus", 830, 558);
-
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return { texture: tex, dataUrl: canvas.toDataURL("image/png") };
-}
-
-/**
- * 6. 创建展台桌面右角白色警示贴纸：“请勿触摸 DO NOT TOUCH”
- */
-function createDoNotTouchTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 512;
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#f8f8f6";
-  ctx.fillRect(0, 0, 256, 512);
-  ctx.strokeStyle = "#222";
-  ctx.lineWidth = 6;
-  ctx.strokeRect(10, 10, 236, 492);
-
-  ctx.save();
-  ctx.translate(128, 256);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillStyle = "#181818";
-  ctx.font = "bold 54px 'PingFang SC', 'Microsoft YaHei', sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("请勿触摸", 0, -10);
-  ctx.font = "bold 28px Arial, sans-serif";
-  ctx.fillText("DO NOT TOUCH", 0, 42);
-  ctx.restore();
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -1189,217 +1197,116 @@ function createDoNotTouchTexture() {
 }
 
 /**
- * 7. 创建左后方走廊前的“EXIT 出口”立牌贴图
+ * 8. 为弹窗 Modal 生成精美的建筑/景观设计节点图文图纸卡片
  */
-function createExitSignTexture() {
+function createNodeDiagramPreview(info) {
   const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 360;
+  canvas.width = 640;
+  canvas.height = 480;
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#f4f4f4";
-  ctx.fillRect(0, 0, 256, 360);
-  ctx.strokeStyle = "#cccccc";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(8, 8, 240, 344);
+  // 深墨绿建筑晒图纸底色
+  const bg = ctx.createLinearGradient(0, 0, 640, 480);
+  bg.addColorStop(0, "#1c2622");
+  bg.addColorStop(1, "#121816");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 640, 480);
 
-  ctx.fillStyle = "#222222";
-  ctx.font = "bold 46px Arial, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("EXIT", 128, 130);
-  ctx.font = "bold 40px 'PingFang SC', sans-serif";
-  ctx.fillText("出 口", 128, 190);
-  ctx.font = "bold 52px Arial, sans-serif";
-  ctx.fillText("←", 128, 265);
-
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-/**
- * 8. 程序化绘制 25 幅达·芬奇手稿与古典素描画芯（含白色卡纸衬边与照片中的蓝底手稿）
- */
-function createArtworkTexture(index, info) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 640;
-  const ctx = canvas.getContext("2d");
-
-  // 1) 白色装裱卡纸 (Passepartout Mat Board)
-  ctx.fillStyle = "#f4f1ea";
-  ctx.fillRect(0, 0, 512, 640);
-
-  // 卡纸内斜切阴影线
-  const padX = 76;
-  const padY = 92;
-  const innerW = 512 - padX * 2;
-  const innerH = 640 - padY * 2;
-
-  ctx.strokeStyle = "#c9c2b4";
-  ctx.lineWidth = 3;
-  ctx.strokeRect(padX - 2, padY - 2, innerW + 4, innerH + 4);
-
-  // 2) 画芯古董羊皮纸 / 蓝晒纸底色（照片中左墙第8幅、右墙第5幅为显著的蓝色底手稿）
-  const isBluePaper = info.paperStyle === "blue";
-  const isRedChalk = info.paperStyle === "red";
-
-  const paperGrad = ctx.createRadialGradient(256, 320, 20, 256, 320, 260);
-  if (isBluePaper) {
-    paperGrad.addColorStop(0, "#7ba6d4");
-    paperGrad.addColorStop(1, "#4e79a8");
-  } else if (isRedChalk) {
-    paperGrad.addColorStop(0, "#e6c7a8");
-    paperGrad.addColorStop(1, "#c99b72");
-  } else {
-    paperGrad.addColorStop(0, "#e2cfa9");
-    paperGrad.addColorStop(1, "#bfa375");
+  // 坐标网格
+  ctx.strokeStyle = "rgba(201, 167, 105, 0.08)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 640; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 480);
+    ctx.stroke();
   }
-  ctx.fillStyle = paperGrad;
-  ctx.fillRect(padX, padY, innerW, innerH);
+  for (let y = 0; y < 480; y += 32) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(640, y);
+    ctx.stroke();
+  }
 
-  // 3) 根据手稿主题绘制达·芬奇几何/机械/解剖线稿
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(padX, padY, innerW, innerH);
-  ctx.clip();
+  // 外框金线
+  ctx.strokeStyle = "rgba(201, 167, 105, 0.55)";
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(20, 20, 600, 440);
 
-  const inkColor = isBluePaper ? "rgba(242, 248, 255, 0.85)" : isRedChalk ? "rgba(128, 38, 22, 0.82)" : "rgba(68, 42, 22, 0.82)";
-  const faintInk = isBluePaper ? "rgba(220, 235, 255, 0.35)" : "rgba(92, 60, 32, 0.32)";
+  // 节点编号与标题
+  ctx.fillStyle = "#ebd099";
+  ctx.font = "bold 20px 'Segoe UI', sans-serif";
+  ctx.fillText(info.id, 42, 58);
 
-  ctx.strokeStyle = inkColor;
-  ctx.fillStyle = inkColor;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 26px 'PingFang SC', 'Microsoft YaHei', sans-serif";
+  ctx.fillText(info.title, 42, 95);
+
+  ctx.fillStyle = "#9ab0a4";
+  ctx.font = "16px 'PingFang SC', sans-serif";
+  ctx.fillText(info.subtitle, 42, 125);
+
+  // 中央建筑/景观示意几何图形
+  ctx.strokeStyle = "#ebd099";
   ctx.lineWidth = 2.2;
+  const cx = 320, cy = 265;
 
-  const cx = 256;
-  const cy = 310;
-  const motif = index % 6;
-
-  if (motif === 0) {
-    // 维特鲁威人体比例与几何圆方图
-    ctx.beginPath();
-    ctx.arc(cx, cy, 125, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.strokeRect(cx - 102, cy - 102, 204, 204);
-    // 中心人物与几何放射线
-    ctx.beginPath();
-    ctx.arc(cx, cy - 68, 18, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx - 95, cy - 35);
-    ctx.lineTo(cx + 95, cy - 35);
-    ctx.moveTo(cx - 88, cy - 55);
-    ctx.lineTo(cx + 88, cy - 55);
-    ctx.moveTo(cx, cy - 50);
-    ctx.lineTo(cx, cy + 30);
-    ctx.lineTo(cx - 45, cy + 115);
-    ctx.moveTo(cx, cy + 30);
-    ctx.lineTo(cx + 45, cy + 115);
-    ctx.stroke();
-  } else if (motif === 1) {
-    // 多级精密齿轮与擒纵机构手稿
-    for (let g = 0; g < 3; g++) {
-      const gx = cx + (g - 1) * 62;
-      const gy = cy + (g % 2 === 0 ? -25 : 42);
-      const r = g === 1 ? 58 : 38;
+  if (info.diagramType === "pavilion") {
+    // 门厅立面比例图
+    ctx.strokeRect(cx - 170, cy - 20, 340, 95);
+    ctx.strokeRect(cx - 115, cy - 62, 230, 42);
+    for (let x = cx - 110; x <= cx + 110; x += 10) {
       ctx.beginPath();
-      ctx.arc(gx, gy, r, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(gx, gy, r * 0.35, 0, Math.PI * 2);
-      ctx.stroke();
-      const teeth = g === 1 ? 16 : 12;
-      for (let t = 0; t < teeth; t++) {
-        const a = (t / teeth) * Math.PI * 2;
-        ctx.beginPath();
-        ctx.moveTo(gx + Math.cos(a) * r, gy + Math.sin(a) * r);
-        ctx.lineTo(gx + Math.cos(a) * (r + 9), gy + Math.sin(a) * (r + 9));
-        ctx.stroke();
-      }
-    }
-  } else if (motif === 2) {
-    // 扑翼飞行器翼骨力学构造图
-    ctx.beginPath();
-    ctx.moveTo(cx - 140, cy + 50);
-    ctx.quadraticCurveTo(cx, cy - 110, cx + 140, cy + 40);
-    ctx.stroke();
-    for (let rib = -6; rib <= 6; rib++) {
-      const rx = cx + rib * 20;
-      const ry = cy - 35 + Math.abs(rib) * 11;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 65);
-      ctx.lineTo(rx, ry + 75);
+      ctx.moveTo(x, cy - 62);
+      ctx.lineTo(x, cy - 20);
       ctx.stroke();
     }
-  } else if (motif === 3) {
-    // 建筑穹顶与拱券透视结构图
-    ctx.beginPath();
-    ctx.arc(cx, cy + 10, 95, Math.PI, 0);
-    ctx.stroke();
-    ctx.strokeRect(cx - 95, cy + 10, 190, 95);
-    for (let col = -3; col <= 3; col++) {
+    ctx.fillStyle = "rgba(235, 208, 153, 0.18)";
+    ctx.fillRect(cx - 85, cy - 12, 170, 87);
+  } else if (info.diagramType === "pond") {
+    // 池底同心弧形水波纹图
+    for (let r = 40; r <= 160; r += 28) {
       ctx.beginPath();
-      ctx.moveTo(cx + col * 26, cy + 10);
-      ctx.lineTo(cx + col * 26, cy + 105);
+      ctx.arc(cx + 40, cy + 70, r, Math.PI * 0.9, Math.PI * 1.65);
       ctx.stroke();
     }
-  } else if (motif === 4) {
-    // 空气螺旋桨 (Aerial Screw) 与流体涡旋手稿
+  } else if (info.diagramType === "pine") {
+    // 造型罗汉松片云结构图
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 120);
-    ctx.lineTo(cx, cy + 115);
+    ctx.moveTo(cx, cy + 90);
+    ctx.quadraticCurveTo(cx - 25, cy + 20, cx + 10, cy - 65);
     ctx.stroke();
-    for (let s = 0; s < 4; s++) {
-      const sy = cy - 80 + s * 45;
+    [
+      [cx - 65, cy + 15, 48, 16],
+      [cx + 55, cy - 5, 52, 16],
+      [cx - 45, cy - 35, 42, 14],
+      [cx + 10, cy - 72, 46, 15],
+    ].forEach(([px, py, rx, ry]) => {
       ctx.beginPath();
-      ctx.ellipse(cx, sy, 95 - s * 10, 24, 0.18, 0, Math.PI * 2);
+      ctx.ellipse(px, py, rx, ry, 0, 0, Math.PI * 2);
       ctx.stroke();
-    }
+    });
   } else {
-    // 古典马术与解剖力学比例研究
-    ctx.beginPath();
-    ctx.arc(cx - 25, cy - 20, 52, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx + 42, cy - 65, 28, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.strokeRect(cx - 90, cy - 105, 180, 210);
-    ctx.beginPath();
-    ctx.moveTo(cx - 90, cy - 105);
-    ctx.lineTo(cx + 90, cy + 105);
-    ctx.moveTo(cx + 90, cy - 105);
-    ctx.lineTo(cx - 90, cy + 105);
-    ctx.stroke();
+    // 微地形等高线与建筑格局图
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.ellipse(cx - 30, cy + 10, 140 - i * 28, 65 - i * 13, -0.15, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
-  // 4) 模拟达·芬奇著名的“镜像手写体笔记”横线纹理
-  ctx.strokeStyle = faintInk;
-  ctx.lineWidth = 1.4;
-  for (let line = 0; line < 7; line++) {
-    const ly = padY + 28 + line * 11;
-    ctx.beginPath();
-    ctx.moveTo(padX + 24, ly);
-    ctx.lineTo(padX + innerW - 30 - (line % 3) * 40, ly);
-    ctx.stroke();
-  }
-  for (let line = 0; line < 6; line++) {
-    const ly = padY + innerH - 85 + line * 11;
-    ctx.beginPath();
-    ctx.moveTo(padX + 24, ly);
-    ctx.lineTo(padX + innerW - 24 - (line % 2) * 55, ly);
-    ctx.stroke();
-  }
+  // 底部材料标签
+  ctx.fillStyle = "#c9a769";
+  ctx.font = "15px 'PingFang SC', sans-serif";
+  ctx.fillText(`工艺材质：${info.material}`, 42, 412);
+  ctx.fillText(`造园法则：${info.principle}`, 42, 438);
 
-  ctx.restore();
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return { texture, dataUrl: canvas.toDataURL("image/png") };
+  return canvas.toDataURL("image/png");
 }
 
 
 // ============================================================================
-// 1. 场景、相机、WebGLRenderer 与 HDR 环境光照初始化 (遵循 threejs r186 规范)
+// 1. 渲染器、场景与原图相机透视初始化 (Three.js r186 标准)
 // ============================================================================
 const container = document.getElementById("canvas-container");
 
@@ -1410,53 +1317,52 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.08;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap; // r186 标准软阴影
+renderer.shadowMap.type = THREE.PCFShadowMap;
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xdcd9d2);
-scene.fog = new THREE.FogExp2(0xdcd9d2, 0.012);
+scene.background = new THREE.Color(0xdce6ed);
+scene.fog = new THREE.FogExp2(0xdce6ed, 0.011);
 
-// 原照片透视机位参数：站在1号展台（起重机）正前方略偏左，微俯视斜牌与纵深长廊
 const camera = new THREE.PerspectiveCamera(
-  50,
+  45,
   window.innerWidth / window.innerHeight,
-  0.1,
-  100
+  0.2,
+  180
 );
 
 const CAMERA_PRESETS = {
   photo: {
-    pos: new THREE.Vector3(-0.04, 1.54, 7.62),
-    target: new THREE.Vector3(0.02, 1.24, -2.5),
-    fov: 50,
-  },
-  crane: {
-    pos: new THREE.Vector3(-1.35, 1.62, 6.45),
-    target: new THREE.Vector3(0.0, 1.32, 5.15),
+    pos: new THREE.Vector3(0.0, 2.32, 23.2),
+    target: new THREE.Vector3(0.0, 2.55, -4.0),
     fov: 45,
   },
-  gears: {
-    pos: new THREE.Vector3(1.55, 1.58, 1.85),
-    target: new THREE.Vector3(0.0, 1.22, 0.2),
+  pavilion: {
+    pos: new THREE.Vector3(0.0, 2.35, 3.8),
+    target: new THREE.Vector3(0.0, 2.45, -10.5),
+    fov: 40,
+  },
+  pond: {
+    pos: new THREE.Vector3(-4.2, 2.65, 16.2),
+    target: new THREE.Vector3(-2.6, 0.2, 7.2),
+    fov: 42,
+  },
+  pine_right: {
+    pos: new THREE.Vector3(1.5, 2.25, 4.5),
+    target: new THREE.Vector3(6.2, 2.8, -3.8),
+    fov: 40,
+  },
+  mound_left: {
+    pos: new THREE.Vector3(1.2, 2.15, 8.8),
+    target: new THREE.Vector3(-5.2, 1.35, 0.5),
+    fov: 40,
+  },
+  aerial: {
+    pos: new THREE.Vector3(0.0, 12.5, 24.5),
+    target: new THREE.Vector3(0.0, 1.5, -2.5),
     fov: 45,
-  },
-  left_wall: {
-    pos: new THREE.Vector3(0.8, 1.6, 1.5),
-    target: new THREE.Vector3(-3.8, 1.55, -1.2),
-    fov: 50,
-  },
-  right_wall: {
-    pos: new THREE.Vector3(-0.8, 1.6, 1.5),
-    target: new THREE.Vector3(3.8, 1.55, -1.2),
-    fov: 50,
-  },
-  overview: {
-    pos: new THREE.Vector3(0.0, 2.55, 8.9),
-    target: new THREE.Vector3(0.0, 1.3, -4.0),
-    fov: 55,
   },
 };
 
@@ -1466,346 +1372,70 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.copy(CAMERA_PRESETS.photo.target);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
-controls.maxPolarAngle = Math.PI * 0.52;
-controls.minPolarAngle = 0.15;
-controls.minDistance = 0.6;
-controls.maxDistance = 18.0;
+controls.maxPolarAngle = Math.PI * 0.492;
+controls.minPolarAngle = 0.08;
+controls.minDistance = 2.0;
+controls.maxDistance = 42.0;
 controls.update();
 
 // ============================================================================
-// 2. HDR 环境贴图管理 (支持 32-bit 定制 HDR / HDRLoader 实景 .hdr / RoomEnvironment)
+// 2. HDR 环境贴图与物理天光系统 (晨曦云雾 / 夕阳晚照 / 庭院月夜)
 // ============================================================================
 const maxAniso = renderer.capabilities.getMaxAnisotropy();
-const galleryHDRTex = createGalleryHDRTexture();
-let royalHDRTex = null;
-let roomEnvTex = null;
+const hdrCache = {
+  morning: createCourtyardHDRTexture("morning"),
+  sunset: createCourtyardHDRTexture("sunset"),
+  night: createCourtyardHDRTexture("night"),
+};
 
-scene.environment = galleryHDRTex;
-scene.environmentIntensity = 0.85;
+scene.environment = hdrCache.morning;
+scene.background = hdrCache.morning;
+scene.environmentIntensity = 1.05;
 
-const hdrLoader = new HDRLoader();
-const hdrBadge = document.getElementById("hdr-status-badge");
-
-async function switchEnvironmentMap(mode) {
-  if (mode === "gallery_hdr") {
-    scene.environment = galleryHDRTex;
-    hdrBadge.textContent = "定制 32-bit HDR";
-    hdrBadge.style.color = "#7ee787";
-  } else if (mode === "royal_hdr") {
-    hdrBadge.textContent = "加载实景 HDR...";
-    hdrBadge.style.color = "#f3c677";
-    if (!royalHDRTex) {
-      try {
-        royalHDRTex = await hdrLoader.loadAsync(
-          "./vendor/royal_esplanade_1k.hdr"
-        );
-        royalHDRTex.mapping = THREE.EquirectangularReflectionMapping;
-      } catch (err) {
-        console.warn("外部 HDR 加载回退至内置高动态贴图:", err);
-        royalHDRTex = galleryHDRTex;
-      }
-    }
-    scene.environment = royalHDRTex;
-    hdrBadge.textContent = "实景 HDR 已激活";
-    hdrBadge.style.color = "#7ee787";
-  } else if (mode === "room_env") {
-    if (!roomEnvTex) {
-      const pmrem = new THREE.PMREMGenerator(renderer);
-      const room = new RoomEnvironment();
-      roomEnvTex = pmrem.fromScene(room, 0.04).texture;
-      room.dispose();
-      pmrem.dispose();
-    }
-    scene.environment = roomEnvTex;
-    hdrBadge.textContent = "Room IBL 已激活";
-    hdrBadge.style.color = "#7ee787";
-  }
-}
-
-// ============================================================================
-// 3. 展厅建筑空间搭建 (精准匹配原照片的长宽比、灰布横幅隔断、轨道射灯与木地板)
-// ============================================================================
-// 展厅尺寸：宽 7.8m (X: -3.9 ~ +3.9)，高 3.8m (Y: 0 ~ 3.8)，长 24m (Z: -13 ~ +11)
-const HALL_W = 7.8;
-const HALL_H = 3.8;
-const HALL_L = 24.0;
-
-const oakTextures = createOakFloorTextures(maxAniso);
-const sideWallTextures = createSideWallTextures(maxAniso);
-const walnutMap = createWalnutTextures(maxAniso);
-const doNotTouchMap = createDoNotTouchTexture();
-
-// 3.1 橡木地板 (带 Clearcoat 清漆反射，响应 HDR 环境光影)
-const floorMat = new THREE.MeshPhysicalMaterial({
-  map: oakTextures.map,
-  roughnessMap: oakTextures.roughnessMap,
-  bumpMap: oakTextures.bumpMap,
-  bumpScale: 0.008,
-  roughness: 0.42,
-  metalness: 0.02,
-  clearcoat: 0.35,
-  clearcoatRoughness: 0.28,
-});
-const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(HALL_W, HALL_L), floorMat);
-floorMesh.rotation.x = -Math.PI / 2;
-floorMesh.position.set(0, 0, -1.0);
-floorMesh.receiveShadow = true;
-scene.add(floorMesh);
-
-// 3.2 左右两侧白色浮雕肌理长墙
-const sideWallMat = new THREE.MeshStandardMaterial({
-  map: sideWallTextures.map,
-  bumpMap: sideWallTextures.bumpMap,
-  bumpScale: 0.012,
-  roughness: 0.72,
-  metalness: 0.0,
-});
-
-const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(HALL_L, HALL_H), sideWallMat);
-leftWall.rotation.y = Math.PI / 2;
-leftWall.position.set(-HALL_W / 2, HALL_H / 2, -1.0);
-leftWall.receiveShadow = true;
-scene.add(leftWall);
-
-const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(HALL_L, HALL_H), sideWallMat);
-rightWall.rotation.y = -Math.PI / 2;
-rightWall.position.set(HALL_W / 2, HALL_H / 2, -1.0);
-rightWall.receiveShadow = true;
-scene.add(rightWall);
-
-// 底部深灰黑色踢脚线 (Skirting Board)
-const skirtMat = new THREE.MeshStandardMaterial({ color: 0x222428, roughness: 0.5 });
-const leftSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.08, HALL_L), skirtMat);
-leftSkirt.position.set(-HALL_W / 2 + 0.015, 0.04, -1.0);
-const rightSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.08, HALL_L), skirtMat);
-rightSkirt.position.set(HALL_W / 2 - 0.015, 0.04, -1.0);
-scene.add(leftSkirt, rightSkirt);
-
-// 墙面底部插座与右侧红色消火栓标识细节（还原照片右侧墙角）
-const outletMat = new THREE.MeshStandardMaterial({ color: 0xdedede, roughness: 0.4 });
-[-4, 1, 5].forEach((zPos) => {
-  const outletL = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.09, 0.09), outletMat);
-  outletL.position.set(-HALL_W / 2 + 0.01, 0.32, zPos);
-  const outletR = outletL.clone();
-  outletR.position.set(HALL_W / 2 - 0.01, 0.32, zPos);
-  scene.add(outletL, outletR);
-});
-// 右墙中段红色安全标识贴片
-const redSign = new THREE.Mesh(
-  new THREE.BoxGeometry(0.015, 0.12, 0.26),
-  new THREE.MeshBasicMaterial({ color: 0xc83e32 })
-);
-redSign.position.set(HALL_W / 2 - 0.01, 0.38, 1.8);
-scene.add(redSign);
-
-// 3.3 远端背景分区：中央白色隔断展墙 + 左右深灰走廊通道（精准还原照片尽头空间）
-const farCenterWallMat = new THREE.MeshStandardMaterial({
-  color: 0xeeece6,
-  roughness: 0.75,
-});
-const farCenterWall = new THREE.Mesh(new THREE.BoxGeometry(3.5, HALL_H, 0.35), farCenterWallMat);
-farCenterWall.position.set(0, HALL_H / 2, -10.8);
-farCenterWall.receiveShadow = true;
-farCenterWall.castShadow = true;
-scene.add(farCenterWall);
-
-// 尽头走廊深炭灰背景墙
-const corridorWallMat = new THREE.MeshStandardMaterial({
-  color: 0x4f5254,
-  roughness: 0.8,
-});
-const farBackWall = new THREE.Mesh(new THREE.PlaneGeometry(HALL_W, HALL_H), corridorWallMat);
-farBackWall.position.set(0, HALL_H / 2, -12.8);
-scene.add(farBackWall);
-
-// 左后方通道口“EXIT 出口”银色立柱指示牌（还原照片左侧走廊入口处立牌）
-const exitGroup = new THREE.Group();
-exitGroup.position.set(-3.15, 0, -9.8);
-const poleMat = new THREE.MeshStandardMaterial({ color: 0xc0c4c8, metalness: 0.7, roughness: 0.25 });
-const exitBase = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.03, 24), poleMat);
-exitBase.position.y = 0.015;
-const exitPole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.15, 16), poleMat);
-exitPole.position.y = 0.58;
-const exitBoard = new THREE.Mesh(
-  new THREE.BoxGeometry(0.42, 0.56, 0.02),
-  new THREE.MeshBasicMaterial({ map: createExitSignTexture() })
-);
-exitBoard.position.y = 1.22;
-exitGroup.add(exitBase, exitPole, exitBoard);
-scene.add(exitGroup);
-
-// 3.4 天花板、顶部灰色垂挂卷帘横幅 (Grey Overhead Partition Banner)、空调风口与轨道射灯
-const ceilingMat = new THREE.MeshStandardMaterial({
-  color: 0xeae6df,
-  roughness: 0.85,
-});
-const ceilingMesh = new THREE.Mesh(new THREE.PlaneGeometry(HALL_W, HALL_L), ceilingMat);
-ceilingMesh.rotation.x = Math.PI / 2;
-ceilingMesh.position.set(0, HALL_H, -1.0);
-scene.add(ceilingMesh);
-
-// 照片中最具辨识度的建筑构件：横跨展厅上方的浅灰织物卷帘软隔断 (Z = 4.15m)
-const bannerGroup = new THREE.Group();
-bannerGroup.position.set(0, HALL_H - 0.52, 4.15);
-
-const bannerMat = new THREE.MeshStandardMaterial({
-  color: 0x82868c,
-  roughness: 0.62,
-  metalness: 0.08,
-});
-const bannerCloth = new THREE.Mesh(new THREE.BoxGeometry(HALL_W - 0.12, 0.96, 0.035), bannerMat);
-bannerCloth.castShadow = true;
-bannerCloth.receiveShadow = true;
-bannerGroup.add(bannerCloth);
-
-// 卷帘底部的铝合金配重圆杆与两侧黑色安装支架
-const rodMat = new THREE.MeshStandardMaterial({ color: 0xb8bcc2, metalness: 0.65, roughness: 0.3 });
-const bottomRod = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.022, 0.022, HALL_W - 0.08, 16),
-  rodMat
-);
-bottomRod.rotation.z = Math.PI / 2;
-bottomRod.position.y = -0.46;
-bannerGroup.add(bottomRod);
-
-const bracketMat = new THREE.MeshStandardMaterial({ color: 0x222428, roughness: 0.4 });
-[-HALL_W / 2 + 0.05, HALL_W / 2 - 0.05].forEach((bx) => {
-  const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.24, 0.08), bracketMat);
-  bracket.position.set(bx, 0.34, 0);
-  bannerGroup.add(bracket);
-});
-scene.add(bannerGroup);
-
-// 天花板前景条形空调出风口（照片顶部正中央黑色格栅）
-const ventFrame = new THREE.Mesh(
-  new THREE.BoxGeometry(1.75, 0.02, 0.24),
-  new THREE.MeshStandardMaterial({ color: 0xd8d5ce, roughness: 0.6 })
-);
-ventFrame.position.set(-0.15, HALL_H - 0.01, 4.15);
-const ventInner = new THREE.Mesh(
-  new THREE.BoxGeometry(1.62, 0.025, 0.16),
-  new THREE.MeshBasicMaterial({ color: 0x232528 })
-);
-ventInner.position.set(-0.15, HALL_H - 0.012, 4.15);
-scene.add(ventFrame, ventInner);
-
-// 天花板轨道射灯导轨与灯具模型
-const trackMat = new THREE.MeshStandardMaterial({ color: 0xf2f0ec, roughness: 0.4, metalness: 0.2 });
-const bulbGlowMat = new THREE.MeshBasicMaterial({ color: 0xfff8e7 });
-
-function createTrackLightFixture(x, z, aimX) {
-  const fixture = new THREE.Group();
-  fixture.position.set(x, HALL_H - 0.04, z);
-
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.1, 8), trackMat);
-  stem.position.y = -0.05;
-  fixture.add(stem);
-
-  const head = new THREE.Group();
-  head.position.y = -0.11;
-  head.rotation.z = aimX < 0 ? -0.55 : 0.55;
-
-  const can = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.14, 12), trackMat);
-  const lens = new THREE.Mesh(new THREE.CircleGeometry(0.032, 12), bulbGlowMat);
-  lens.rotation.x = Math.PI / 2;
-  lens.position.y = -0.071;
-  head.add(can, lens);
-  fixture.add(head);
-
-  scene.add(fixture);
-}
-
-// 主展厅左右两侧长导轨 (Z: -10.0 ~ +2.4)
-[-2.85, 2.85].forEach((railX) => {
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.03, 12.6), trackMat);
-  rail.position.set(railX, HALL_H - 0.015, -3.8);
-  scene.add(rail);
-
-  for (let z = -9.6; z <= 2.0; z += 1.05) {
-    createTrackLightFixture(railX, z, railX < 0 ? -1 : 1);
-  }
-});
-
-// 前景天花板四条斜向导轨（还原照片顶部近景的四列射灯）
-const fgRails = [
-  { x: -2.9, z: 5.0, rotY: -0.18, aim: -1 },
-  { x: -1.1, z: 5.0, rotY: -0.12, aim: 1 },
-  { x: 1.0, z: 5.0, rotY: 0.12, aim: -1 },
-  { x: 2.9, z: 5.0, rotY: 0.18, aim: 1 },
-];
-fgRails.forEach((cfg) => {
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.03, 4.2), trackMat);
-  rail.position.set(cfg.x, HALL_H - 0.015, cfg.z);
-  rail.rotation.y = cfg.rotY;
-  scene.add(rail);
-  [-1.3, 0, 1.3].forEach((dz) => {
-    createTrackLightFixture(cfg.x - Math.sin(cfg.rotY) * dz, cfg.z + Math.cos(cfg.rotY) * dz, cfg.aim);
-  });
-});
-
-// 中轴线天花板嵌入式圆筒灯发光点
-for (let z = -9.5; z <= 6.5; z += 2.0) {
-  const downlight = new THREE.Mesh(new THREE.CircleGeometry(0.055, 16), bulbGlowMat);
-  downlight.rotation.x = Math.PI / 2;
-  downlight.position.set(0, HALL_H - 0.005, z);
-  scene.add(downlight);
-}
-
-// ============================================================================
-// 4. 物理光源配置 (Directional 主阴影光 + 多组聚光灯/点光源 + 半球漫射光)
-// ============================================================================
-const hemiLight = new THREE.HemisphereLight(0xfffbf2, 0xb5926b, 0.55);
+const hemiLight = new THREE.HemisphereLight(0xeef6fa, 0x3d5234, 0.65);
 scene.add(hemiLight);
 
-// 主方向光投射展台与机械模型的柔和立体阴影
-const mainShadowLight = new THREE.DirectionalLight(0xfff5e4, 1.35);
-mainShadowLight.position.set(2.2, 6.5, 6.2);
-mainShadowLight.target.position.set(0, 0.8, 1.5);
-mainShadowLight.castShadow = true;
-mainShadowLight.shadow.mapSize.set(2048, 2048);
-mainShadowLight.shadow.camera.left = -5.5;
-mainShadowLight.shadow.camera.right = 5.5;
-mainShadowLight.shadow.camera.top = 8.5;
-mainShadowLight.shadow.camera.bottom = -9.5;
-mainShadowLight.shadow.camera.near = 1.0;
-mainShadowLight.shadow.camera.far = 18.0;
-mainShadowLight.shadow.bias = -0.0005;
-mainShadowLight.shadow.normalBias = 0.02;
-scene.add(mainShadowLight, mainShadowLight.target);
+// 主太阳平行光：从左上方 (-42°) 照向右下方，精准还原原图右墙上的屋檐与松树斜影
+const sunLight = new THREE.DirectionalLight(0xfff8eb, 2.45);
+function updateSunPosition(angleDeg, elevDeg = 32) {
+  const az = THREE.MathUtils.degToRad(angleDeg);
+  const el = THREE.MathUtils.degToRad(elevDeg);
+  const r = 28;
+  sunLight.position.set(
+    r * Math.cos(el) * Math.sin(az),
+    r * Math.sin(el),
+    r * Math.cos(el) * Math.cos(az)
+  );
+}
+updateSunPosition(-42, 31);
+sunLight.target.position.set(0, 1.0, -2.0);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048, 2048);
+sunLight.shadow.camera.left = -18;
+sunLight.shadow.camera.right = 18;
+sunLight.shadow.camera.top = 14;
+sunLight.shadow.camera.bottom = -16;
+sunLight.shadow.camera.near = 1;
+sunLight.shadow.camera.far = 60;
+sunLight.shadow.bias = -0.0004;
+sunLight.shadow.normalBias = 0.02;
+scene.add(sunLight, sunLight.target);
 
-// 专门照亮 3 座中央机械展台的聚光灯与点光源 (单位：candela 坎德拉)
-const galleryLights = [];
+// 大堂内部暖光点光源（营造玻璃门厅通透温暖的内透光感）
+const lobbyWarmLight = new THREE.PointLight(0xffcf7c, 28, 16, 1.4);
+lobbyWarmLight.position.set(0, 2.1, -10.8);
+scene.add(lobbyWarmLight);
 
-const spotConfigs = [
-  { pos: [-0.8, 3.65, 6.2], target: [0, 1.1, 5.2], intensity: 28 },
-  { pos: [0.9, 3.65, 4.6], target: [0, 1.1, 5.2], intensity: 22 },
-  { pos: [-0.9, 3.65, 1.2], target: [0, 1.1, 0.2], intensity: 26 },
-  { pos: [0.9, 3.65, -4.0], target: [0, 1.1, -4.8], intensity: 24 },
-];
-
-spotConfigs.forEach((sc) => {
-  const spot = new THREE.SpotLight(0xfff1d6, sc.intensity, 12, Math.PI / 4, 0.65, 1.6);
-  spot.position.set(...sc.pos);
-  spot.target.position.set(...sc.target);
-  scene.add(spot, spot.target);
-  galleryLights.push({ light: spot, baseIntensity: sc.intensity });
-});
-
-// 走廊过道补光点光源
-[-6.5, -2.0, 2.5].forEach((zPos) => {
-  const pt = new THREE.PointLight(0xfff6e5, 10, 11, 1.5);
-  pt.position.set(0, 3.4, zPos);
-  scene.add(pt);
-  galleryLights.push({ light: pt, baseIntensity: 10 });
-});
+const pondNightLight = new THREE.PointLight(0x7be0d6, 0, 14, 1.5);
+pondNightLight.position.set(-3.2, 0.6, 8.5);
+scene.add(pondNightLight);
 
 // ============================================================================
-// 5. 可点击交互展品注册表 & 3D 浮动热点标记
+// 3. 交互展品/建筑园林节点注册表
 // ============================================================================
-const interactables = []; // 存放可被 Raycaster 检测的 Mesh
-const exhibitList = [];   // 存放所有展品元数据，用于“下一件展品”切换
+const interactables = [];
+const exhibitList = [];
 const hotspotSprites = [];
-const animatedMechanisms = []; // 存放可旋转的机械曲柄与齿轮动画对象
 
 function createHotspotBadge(position, exhibitData) {
   const canvas = document.createElement("canvas");
@@ -1814,28 +1444,25 @@ function createHotspotBadge(position, exhibitData) {
   const ctx = canvas.getContext("2d");
 
   ctx.beginPath();
-  ctx.arc(64, 64, 48, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(20, 22, 28, 0.82)";
+  ctx.arc(64, 64, 46, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(16, 24, 20, 0.82)";
   ctx.fill();
   ctx.lineWidth = 6;
-  ctx.strokeStyle = "#f3c677";
+  ctx.strokeStyle = "#ebd099";
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(64, 64, 18, 0, Math.PI * 2);
-  ctx.fillStyle = "#f3c677";
+  ctx.arc(64, 64, 17, 0, Math.PI * 2);
+  ctx.fillStyle = "#ebd099";
   ctx.fill();
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.SpriteMaterial({
-    map: tex,
-    transparent: true,
-    depthWrite: false,
-  });
-  const sprite = new THREE.Sprite(mat);
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false })
+  );
   sprite.position.copy(position);
-  sprite.scale.set(0.22, 0.22, 1);
+  sprite.scale.set(0.52, 0.52, 1);
   sprite.userData.exhibit = exhibitData;
   sprite.userData.baseY = position.y;
   scene.add(sprite);
@@ -1843,8 +1470,8 @@ function createHotspotBadge(position, exhibitData) {
   interactables.push(sprite);
 }
 
-function registerInteractiveMesh(mesh, exhibitData) {
-  mesh.traverse((child) => {
+function registerInteractive(obj, exhibitData) {
+  obj.traverse((child) => {
     if (child.isMesh) {
       child.userData.exhibit = exhibitData;
       interactables.push(child);
@@ -1852,539 +1479,715 @@ function registerInteractiveMesh(mesh, exhibitData) {
   });
 }
 
-// ============================================================================
-// 6. 中轴线 3 座达·芬奇木质机械发明展台 (1:1 还原前景“起重机”与立式斜牌)
-// ============================================================================
-const whitePedestalMat = new THREE.MeshStandardMaterial({
-  color: 0xefede8,
-  roughness: 0.65,
-  metalness: 0.02,
+const NODES_META = {
+  pavilion: {
+    id: "L-01 · 礼仪中轴北端",
+    title: "中央禅意门厅与香槟铜格栅冠顶",
+    category: "核心建筑节点 · 01",
+    subtitle: "水平舒展挑檐 · 超白玻幕墙 · 室内山水屏风内透",
+    material: "香槟古铜铝方通 / 超白夹胶玻璃 / 芝麻白荔枝面花岗岩",
+    principle: "框景借景 · 室内外水院视线渗透",
+    status: "支持晨曦/夕阳/月夜内透光影切换",
+    diagramType: "pavilion",
+    desc: "作为整座庭院的视觉焦点，中央迎宾门厅以极简水平挑檐统领全局。顶部冠以高 1.55 米的香槟金竖向格栅体块，下部由深古铜色凹槽立柱框定 8.6 米宽的超白玻无框幕墙，室内暖光山水屏风与前方水院微地形自然交融。",
+    focusPos: new THREE.Vector3(0.0, 2.35, 3.8),
+    focusTarget: new THREE.Vector3(0.0, 2.45, -10.5),
+  },
+  pond: {
+    id: "L-02 · 左前景曲水区",
+    title: "池底弧纹曲水镜池 (Zen Mirror Pond)",
+    category: "核心水景节点 · 02",
+    subtitle: "同心流线石材铺装 · 镜面反射天光松影",
+    material: "山西黑/芝麻黑双色弧形拼花石板 + 溢流镜面水系",
+    principle: "一池三山 · 以静水映照动云与松影",
+    status: "实时反射 HDR 天空与周围景石绿植",
+    diagramType: "pond",
+    desc: "精准还原原图左前景的水景细节：浅水池底采用深浅双色花岗岩加工成流畅的同心弧形水波纹条带，透过清澈微澜的水面若隐若现；水面同时倒映着西侧景石、微地形草坡与天空云影。",
+    focusPos: new THREE.Vector3(-4.2, 2.65, 16.2),
+    focusTarget: new THREE.Vector3(-2.6, 0.2, 7.2),
+  },
+  pine_right: {
+    id: "L-03 · 东侧主景树",
+    title: "东侧特选造型罗汉松 (Master Cloud Pine)",
+    category: "名木点景节点 · 03",
+    subtitle: "多层次片云式修剪 · 苍劲曲干斜影映墙",
+    material: "百年造型罗汉松 / 树皮肌理与层云翠盖",
+    principle: "以树代山 · 白墙为纸、松影作画",
+    status: "随太阳方位角在右侧石墙投射动态斜影",
+    diagramType: "pine",
+    desc: "矗立于东侧浅灰石墙前的特选造型主景松，树冠经匠人修剪成错落有致的水平层云状（片云式），在左上方晨曦日照下，将婆娑松影与屋檐斜影一同投射在素雅的荔枝面石墙之上。",
+    focusPos: new THREE.Vector3(1.5, 2.25, 4.5),
+    focusTarget: new THREE.Vector3(6.2, 2.8, -3.8),
+  },
+  mound_left: {
+    id: "L-04 · 中景微地形",
+    title: "双岛微地形果岭草坡与泰山景石群",
+    category: "微地形造园 · 04",
+    subtitle: "流线型舒缓坡岸 · 天然纹理景石嵌入式点景",
+    material: "台湾天鹅绒草坪 / 苔藓地被 / 泰山原生横纹石",
+    principle: "虽由人作，宛自天开 · 坡岸藏水",
+    status: "高精度起伏曲面网格 + 嵌入式景石组团",
+    diagramType: "mound",
+    desc: "庭院中景由东西两座流线型微地形绿岛交错围合，坡度控制在 8°–15° 之间，形成饱满温润的大地艺术肌理。坡脚临水处半掩嵌入多块天然泰山景石，与修剪灌木球共同构筑出富有自然野趣的溪谷驳岸。",
+    focusPos: new THREE.Vector3(1.2, 2.15, 8.8),
+    focusTarget: new THREE.Vector3(-5.2, 1.35, 0.5),
+  },
+  wall_wing: {
+    id: "L-05 · 东西围合界面",
+    title: "围合式荔枝面花岗岩景墙与百叶高窗",
+    category: "建筑院墙界面 · 05",
+    subtitle: "三段式古典比例重构 · 石材模数分缝与深铜格栅",
+    material: "芝麻白花岗岩荔枝面 / 深古铜铝合金百叶窗",
+    principle: "粉墙黛瓦现代转译 · 围而不闭",
+    status: "高精度分缝贴图与物理高光反射",
+    diagramType: "pavilion",
+    desc: "东西两侧高墙采用现代新中式“三段式”构造：下部为厚重的浅灰花岗岩大板分缝墙体，上部嵌入深古铜色竖向百叶高窗带，顶部以挑出压顶收束，既保障了内院的私密静谧，又令光影与微风自由穿行。",
+    focusPos: new THREE.Vector3(-2.5, 2.4, 7.5),
+    focusTarget: new THREE.Vector3(-12.2, 2.2, -1.0),
+  },
+  villa_pair: {
+    id: "L-06 · 北翼双子建筑",
+    title: "东西两翼后方新中式现代叠墅主楼",
+    category: "背景建筑群体 · 06",
+    subtitle: "深灰四坡挑檐屋顶 · 转角全景落地窗与玻璃露台",
+    material: "深灰钛锌板坡屋面 / 银白铝板檐口 / 超白中空玻璃",
+    principle: "前院后堂 · 层叠退台视野最大化",
+    status: "完整还原双坡挑檐、露台栏板与林木掩映层次",
+    diagramType: "pavilion",
+    desc: "在东西两侧围合院墙后方，对称耸立着两栋新中式现代叠墅。建筑采用舒展的深灰色四坡挑檐屋顶与纤薄银白檐口，二层设有大尺度的悬挑玻璃栏板露台与转角全景落地窗，掩映于浓密乔木树冠之间。",
+    focusPos: new THREE.Vector3(0.0, 5.2, 14.0),
+    focusTarget: new THREE.Vector3(-14.5, 6.2, -7.5),
+  },
+};
+
+Object.values(NODES_META).forEach((meta) => {
+  meta.previewUrl = createNodeDiagramPreview(meta);
+  exhibitList.push(meta);
 });
 
-const walnutWoodMat = new THREE.MeshPhysicalMaterial({
-  map: walnutMap,
-  color: 0x5c381e,
-  roughness: 0.34,
-  metalness: 0.05,
-  clearcoat: 0.48,
-  clearcoatRoughness: 0.22,
+// ============================================================================
+// 4. 材质库初始化
+// ============================================================================
+const pondTex = createPondTextures(maxAniso);
+const grassTex = createVelvetGrassTextures(maxAniso);
+const stoneWallMap = createStoneWallTextures(maxAniso);
+const bronzeLouverMap = createBronzeLouverTexture(maxAniso);
+const lobbyInteriorMap = createLobbyInteriorTexture();
+const shrubFoliageLight = createFoliageTextures("#4b6638");
+const shrubFoliageDark = createFoliageTextures("#2f4524");
+const pineFoliageTex = createFoliageTextures("#2a4021");
+
+const stoneWallMat = new THREE.MeshStandardMaterial({
+  map: stoneWallMap,
+  roughness: 0.72,
+  metalness: 0.04,
 });
 
-const lightOakStandMat = new THREE.MeshStandardMaterial({
-  map: walnutMap,
-  color: 0x9e6330,
+const darkBronzeMat = new THREE.MeshStandardMaterial({
+  color: 0x2e2924,
+  roughness: 0.36,
+  metalness: 0.68,
+});
+
+const eaveGreyMat = new THREE.MeshStandardMaterial({
+  color: 0x3b3e40,
   roughness: 0.42,
+  metalness: 0.45,
 });
 
-const darkIronMat = new THREE.MeshStandardMaterial({
-  color: 0x262423,
-  roughness: 0.4,
-  metalness: 0.75,
-});
-
-const brassGearMat = new THREE.MeshStandardMaterial({
-  color: 0xd4a24c,
-  roughness: 0.25,
-  metalness: 0.88,
-});
-
-// 创建带齿齿轮辅助函数
-function createGearMesh(radius, thickness, teethCount, mat) {
-  const group = new THREE.Group();
-  const disc = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius, thickness, 24),
-    mat
-  );
-  disc.rotation.z = Math.PI / 2;
-  disc.castShadow = true;
-  group.add(disc);
-
-  const toothGeo = new THREE.BoxGeometry(thickness * 0.92, radius * 0.22, radius * 0.16);
-  for (let i = 0; i < teethCount; i++) {
-    const angle = (i / teethCount) * Math.PI * 2;
-    const tooth = new THREE.Mesh(toothGeo, mat);
-    tooth.position.set(0, Math.cos(angle) * (radius + radius * 0.06), Math.sin(angle) * (radius + radius * 0.06));
-    tooth.rotation.x = -angle;
-    group.add(tooth);
-  }
-  return group;
-}
-
-const CENTRAL_EXHIBITS = [
-  {
-    id: "M-01",
-    z: 5.15,
-    title: "起重机 (立式棘轮升降机)",
-    enTitle: "DA VINCI VERTICAL HOIST CRANE",
-    category: "中央木质机械展台 · 01",
-    subtitle: "《大西洋古抄本》Codex Atlanticus f. 30v · 约 1480 年",
-    material: "深胡桃木立柱 / 锻铁摇柄 / 黄铜棘轮组",
-    principle: "曲柄力矩放大 + 蜗轮棘爪单向防坠自锁",
-    status: "支持点击摇柄驱动齿轮与吊索运转",
-    lines: [
-      "列奥纳多·达·芬奇 1452-1519",
-      "此立式起重机专为文艺复兴大型石材吊装设计。",
-      "操作者转动左侧曲柄，驱动木箱内多级减速齿轮，",
-      "配合棘爪自锁机构，单人即可安全悬停重物。"
-    ],
-    desc: "照片正前景的核心展品。由白色落地基座、深胡桃木宽厚台面、立式主木柱、右侧三角斜撑、中部齿轮木箱以及向左侧伸出的 L 型黑色金属手摇曲柄组成。台面右下角与右上角贴有「请勿触摸 DO NOT TOUCH」警示牌，正前方立有斜向木质导览牌。",
-    focusPos: new THREE.Vector3(-1.15, 1.58, 6.38),
-    focusTarget: new THREE.Vector3(0.0, 1.28, 5.25),
-    type: "crane",
-  },
-  {
-    id: "M-02",
-    z: 0.25,
-    title: "多级齿轮变速与飞轮机构",
-    enTitle: "MULTI-STAGE GEAR & FLYWHEEL DRIVE",
-    category: "中央木质机械展台 · 02",
-    subtitle: "《马德里手稿》第一卷 · 约 1493 年",
-    material: "胡桃木机架 / 黄铜啮合大齿轮 / 锻铁轴",
-    principle: "渐开线雏形齿廓与惯性飞轮储能调速",
-    status: "支持点击驱动多级齿轮同步啮合旋转",
-    lines: [
-      "列奥纳多·达·芬奇 1452-1519",
-      "展示不同齿数比下的角速度与扭矩转换关系。",
-      "外露式大直径木齿圈与黄铜小齿轮精密咬合，",
-      "体现了现代机械变速箱的早期核心思想。"
-    ],
-    desc: "位于展厅中轴线中段的第二座机械展台（照片中母子观众正在驻足观看的展品）。台面上方安装有外露式大尺寸环形齿轮圈与双轴联动机构，前方同样配有木质斜立解说牌。",
-    focusPos: new THREE.Vector3(1.38, 1.56, 1.48),
-    focusTarget: new THREE.Vector3(0.0, 1.22, 0.25),
-    type: "gears",
-  },
-  {
-    id: "M-03",
-    z: -4.65,
-    title: "凸轮自动锻锤与螺旋升降台",
-    enTitle: "CAM TRIP HAMMER & AERIAL SCREW",
-    category: "中央木质机械展台 · 03",
-    subtitle: "《大西洋古抄本》与法兰西学会手稿 B · 约 1488 年",
-    material: "实木立架 / 螺旋翼盘 / 黄铜凸轮轴",
-    principle: "旋转运动转化为周期性垂直冲击与螺旋升力",
-    status: "支持点击触发凸轮与螺旋机构动态演示",
-    lines: [
-      "列奥纳多·达·芬奇 1452-1519",
-      "结合凸轮周期举升机构与空气螺旋面力学试验，",
-      "只需连续转动主轴，即可实现自动化重复做功。"
-    ],
-    desc: "位于展厅纵深后段中轴线的第三座木质机械展台，展示达·芬奇对凸轮自动化传动与螺旋几何升力的前瞻性探索。",
-    focusPos: new THREE.Vector3(-1.35, 1.56, -3.45),
-    focusTarget: new THREE.Vector3(0.0, 1.22, -4.65),
-    type: "cam",
-  },
-];
-
-CENTRAL_EXHIBITS.forEach((cfg, idx) => {
-  const group = new THREE.Group();
-  group.position.set(0, 0, cfg.z);
-
-  const signInfo = createLecternSignTexture(cfg.title.split(" ")[0], cfg.enTitle, cfg.lines);
-
-  const exhibitData = {
-    ...cfg,
-    previewUrl: signInfo.dataUrl,
-    mechIndex: idx,
-  };
-  exhibitList.push(exhibitData);
-
-  // 1) 白色方柱底座 (White Pedestal Base)
-  const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.92, 0.78), whitePedestalMat);
-  baseMesh.position.y = 0.46;
-  baseMesh.castShadow = true;
-  baseMesh.receiveShadow = true;
-  group.add(baseMesh);
-
-  // 2) 深胡桃木加厚台面 (Dark Walnut Tabletop)
-  const topMesh = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.045, 0.96), walnutWoodMat);
-  topMesh.position.y = 0.942;
-  topMesh.castShadow = true;
-  topMesh.receiveShadow = true;
-  group.add(topMesh);
-
-  // 台面右侧前后两个角上的白色警示贴「请勿触摸 DO NOT TOUCH」（1:1 对应照片右下角与右上角白贴纸）
-  const stickerGeo = new THREE.PlaneGeometry(0.075, 0.145);
-  const stickerMat = new THREE.MeshBasicMaterial({ map: doNotTouchMap });
-  const stickerFrontRight = new THREE.Mesh(stickerGeo, stickerMat);
-  stickerFrontRight.rotation.x = -Math.PI / 2;
-  stickerFrontRight.position.set(0.41, 0.966, 0.37);
-
-  const stickerBackRight = new THREE.Mesh(stickerGeo, stickerMat);
-  stickerBackRight.rotation.x = -Math.PI / 2;
-  stickerBackRight.position.set(0.41, 0.966, -0.37);
-  group.add(stickerFrontRight, stickerBackRight);
-
-  // 3) 台面上的达·芬奇木质机械主体
-  const mechGroup = new THREE.Group();
-  mechGroup.position.y = 0.965;
-  const animState = { crankGroup: null, gears: [], activeBoost: 0 };
-
-  if (cfg.type === "crane") {
-    // === 1号展台：精确复刻照片前景的“起重机” ===
-    // 底部横向木枕梁
-    const sleeper = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.04, 0.16), walnutWoodMat);
-    sleeper.position.set(0.04, 0.02, -0.02);
-    sleeper.castShadow = true;
-    mechGroup.add(sleeper);
-
-    // 主立式方形木柱 (Tall Vertical Square Post)
-    const mainPost = new THREE.Mesh(new THREE.BoxGeometry(0.095, 1.16, 0.095), walnutWoodMat);
-    mainPost.position.set(0.02, 0.58, -0.02);
-    mainPost.castShadow = true;
-    mechGroup.add(mainPost);
-
-    // 右侧倾斜三角木支撑 (Right Angled Wooden Brace) — 照片中极其醒目的斜向撑木
-    const braceGeo = new THREE.BoxGeometry(0.042, 0.52, 0.09);
-    const rightBrace = new THREE.Mesh(braceGeo, walnutWoodMat);
-    rightBrace.position.set(0.19, 0.21, -0.02);
-    rightBrace.rotation.z = 0.72;
-    rightBrace.castShadow = true;
-    mechGroup.add(rightBrace);
-
-    // 中上部左侧悬挂的木质齿轮箱 (Wooden Gear Box Housing)
-    const gearBox = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.42, 0.22), walnutWoodMat);
-    gearBox.position.set(-0.075, 0.62, 0.02);
-    gearBox.castShadow = true;
-    mechGroup.add(gearBox);
-
-    // 齿轮箱下方的细立柱导杆
-    const guideRod = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.45, 0.032), walnutWoodMat);
-    guideRod.position.set(-0.085, 0.22, 0.02);
-    guideRod.castShadow = true;
-    mechGroup.add(guideRod);
-
-    // 内部黄铜棘轮与木齿轮
-    const gear1 = createGearMesh(0.085, 0.03, 14, brassGearMat);
-    gear1.position.set(-0.02, 0.64, 0.02);
-    mechGroup.add(gear1);
-    animState.gears.push({ mesh: gear1, speed: 1.8 });
-
-    // 向左侧伸出的 L 型黑色铁质摇把曲柄 (Hand Crank sticking out to the left, matching photo!)
-    const crankPivot = new THREE.Group();
-    crankPivot.position.set(-0.13, 0.74, 0.02);
-
-    // 水平轴连接段
-    const crankShaft = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.012, 0.012, 0.14, 12),
-      darkIronMat
-    );
-    crankShaft.rotation.z = Math.PI / 2;
-    crankShaft.position.x = -0.05;
-
-    // 垂直向下的长摇臂（照片中位于立柱左侧的垂直黑杆 + 底部横握手柄）
-    const crankArm = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.011, 0.011, 0.38, 12),
-      darkIronMat
-    );
-    crankArm.position.set(-0.11, -0.18, 0);
-    crankArm.castShadow = true;
-
-    // 底部水平握把 (Horizontal Grip Handle)
-    const crankHandle = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.016, 0.016, 0.15, 12),
-      darkIronMat
-    );
-    crankHandle.rotation.z = Math.PI / 2;
-    crankHandle.position.set(-0.04, -0.36, 0);
-    crankHandle.castShadow = true;
-
-    crankPivot.add(crankShaft, crankArm, crankHandle);
-    mechGroup.add(crankPivot);
-    animState.crankGroup = crankPivot;
-  } else if (cfg.type === "gears") {
-    // === 2号展台：大直径外露齿轮组（还原照片中段女子身旁的外露齿圈结构） ===
-    const frameL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.68, 0.42), walnutWoodMat);
-    frameL.position.set(-0.14, 0.34, 0);
-    const frameR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.68, 0.42), walnutWoodMat);
-    frameR.position.set(0.14, 0.34, 0);
-    frameL.castShadow = true;
-    frameR.castShadow = true;
-    mechGroup.add(frameL, frameR);
-
-    const bigGear = createGearMesh(0.24, 0.04, 20, walnutWoodMat);
-    bigGear.position.set(0.0, 0.48, 0);
-    const smallGear = createGearMesh(0.11, 0.045, 10, brassGearMat);
-    smallGear.position.set(0.0, 0.18, 0.18);
-    mechGroup.add(bigGear, smallGear);
-
-    animState.gears.push({ mesh: bigGear, speed: 1.0 });
-    animState.gears.push({ mesh: smallGear, speed: -2.2 });
-  } else {
-    // === 3号展台：凸轮与螺旋机构 ===
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.72, 0.08), walnutWoodMat);
-    post.position.set(0, 0.36, 0);
-    post.castShadow = true;
-    const gear = createGearMesh(0.18, 0.04, 16, brassGearMat);
-    gear.position.set(0, 0.46, 0);
-    mechGroup.add(post, gear);
-    animState.gears.push({ mesh: gear, speed: 1.4 });
-  }
-
-  group.add(mechGroup);
-  animatedMechanisms.push(animState);
-
-  // 4) 正前方斜立木质展签牌 (Angled Wooden Lectern Signboard in front of Pedestal)
-  // 照片中1号展台正前方有一根竖直木立杆，支撑着倾斜约 38 度的白底“起重机”说明牌
-  const lecternGroup = new THREE.Group();
-  lecternGroup.position.set(0.05, 0, 0.58);
-
-  const standPost = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.86, 0.036), lightOakStandMat);
-  standPost.position.set(0.02, 0.43, 0.02);
-  standPost.castShadow = true;
-  lecternGroup.add(standPost);
-
-  const boardHolder = new THREE.Group();
-  boardHolder.position.set(0.0, 0.92, -0.02);
-  boardHolder.rotation.order = "YXZ";
-  boardHolder.rotation.y = idx === 0 ? -0.42 : 0.0;
-  boardHolder.rotation.x = -0.68; // 朝向观众倾斜，同时还原实拍斜向透视
-
-  // 木质托板边框
-  const woodBack = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.31, 0.018), lightOakStandMat);
-  woodBack.castShadow = true;
-  // 白色展签卡纸面
-  const cardFace = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.44, 0.29),
-    new THREE.MeshStandardMaterial({
-      map: signInfo.texture,
-      roughness: 0.45,
-      metalness: 0.0,
-    })
-  );
-  cardFace.position.z = 0.011;
-  boardHolder.add(woodBack, cardFace);
-  lecternGroup.add(boardHolder);
-  group.add(lecternGroup);
-
-  scene.add(group);
-
-  // 注册点击交互与 3D 悬浮热点
-  registerInteractiveMesh(mechGroup, exhibitData);
-  registerInteractiveMesh(lecternGroup, exhibitData);
-  registerInteractiveMesh(topMesh, exhibitData);
-  createHotspotBadge(new THREE.Vector3(0, 2.25, cfg.z), exhibitData);
+const louverCrownMat = new THREE.MeshStandardMaterial({
+  map: bronzeLouverMap,
+  roughness: 0.35,
+  metalness: 0.62,
 });
 
 // ============================================================================
-// 7. 左右两面展墙 24 幅 + 远端正中 1 幅达·芬奇装裱手稿画作 (共 25 幅可点击画框)
+// 5. 构建中央禅意迎宾玻璃门厅 (Central Glass Lobby Pavilion)
 // ============================================================================
-const frameWoodMat = new THREE.MeshStandardMaterial({
-  color: 0x6e4726,
-  roughness: 0.42,
-  metalness: 0.08,
-});
+const pavilionGroup = new THREE.Group();
+pavilionGroup.position.set(0, 0, -10.5);
+scene.add(pavilionGroup);
 
-const glassCoverMat = new THREE.MeshPhysicalMaterial({
-  color: 0xffffff,
+// 5.1 中央玻璃大堂后方内透背板 (发光暖色山水屏风)
+const lobbyBackdropMat = new THREE.MeshStandardMaterial({
+  map: lobbyInteriorMap,
+  emissive: new THREE.Color(0xffdfa0),
+  emissiveMap: lobbyInteriorMap,
+  emissiveIntensity: 0.55,
+  roughness: 0.5,
+});
+const lobbyBackdrop = new THREE.Mesh(new THREE.PlaneGeometry(8.8, 3.05), lobbyBackdropMat);
+lobbyBackdrop.position.set(0, 1.62, -1.15);
+pavilionGroup.add(lobbyBackdrop);
+
+// 室内米色石材地面与顶棚
+const lobbyFloor = new THREE.Mesh(
+  new THREE.PlaneGeometry(9.2, 3.2),
+  new THREE.MeshStandardMaterial({ color: 0xd8c8a8, roughness: 0.25 })
+);
+lobbyFloor.rotation.x = -Math.PI / 2;
+lobbyFloor.position.set(0, 0.12, -0.4);
+pavilionGroup.add(lobbyFloor);
+
+// 5.2 超白玻通透落地幕墙 (Physical Glass Curtain Wall)
+const glassCurtainMat = new THREE.MeshPhysicalMaterial({
+  color: 0xdbeae6,
   roughness: 0.08,
-  metalness: 0.0,
-  transmission: 0.15,
+  metalness: 0.1,
   transparent: true,
-  opacity: 0.22,
-  reflectivity: 0.9,
+  opacity: 0.26,
+  reflectivity: 0.85,
+});
+const glassCurtain = new THREE.Mesh(new THREE.PlaneGeometry(8.6, 2.95), glassCurtainMat);
+glassCurtain.position.set(0, 1.62, 0.15);
+pavilionGroup.add(glassCurtain);
+
+// 门厅两侧深古铜色竖向凹槽门套立柱 (Fluted Dark Bronze Portal Frames)
+[-4.75, 4.75].forEach((px) => {
+  const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.95, 3.12, 0.65), darkBronzeMat);
+  pillar.position.set(px, 1.56, 0.12);
+  pillar.castShadow = true;
+  pillar.receiveShadow = true;
+  pavilionGroup.add(pillar);
 });
 
-const WALL_ART_TOPICS = [
-  { name: "维特鲁威人体比例研究", code: "卢浮宫与威尼斯学院美术馆藏 · 约 1490 年", principle: "人体解剖与古典建筑几何模数" },
-  { name: "多级行星齿轮与擒纵器手稿", code: "《马德里手稿》Codex Madrid I · 约 1495 年", principle: "钟表擒纵与精密齿比传动" },
-  { name: "扑翼飞行器主翼骨架图", code: "《大西洋古抄本》f. 846v · 约 1487 年", principle: "仿生鸟翼连杆曲柄扑动机构" },
-  { name: "米兰大教堂穹顶承重结构", code: "《大西洋古抄本》建筑卷 · 约 1488 年", principle: "四心拱券与双层壳体静力学" },
-  { name: "空气螺旋桨 (直升机雏形)", code: "法兰西学会手稿 B f. 83v · 约 1489 年", principle: "阿基米德螺旋空气升力效应" },
-  { name: "斯福尔扎巨型青铜战马研究", code: "英国温莎城堡皇家图书馆藏 · 约 1491 年", principle: "马匹肌肉解剖与青铜分块浇铸" },
-];
+// 门厅左右两侧的浅灰荔枝面花岗岩实墙 (Flanking Ashlar Stone Walls)
+const flankStoneMat = stoneWallMat.clone();
+flankStoneMat.map = stoneWallMap.clone();
+flankStoneMat.map.repeat.set(2.2, 1.0);
+flankStoneMat.map.needsUpdate = true;
 
-function createFramedArtwork(artIndex, wallSide, zPos, xPos = 0) {
-  const topic = WALL_ART_TOPICS[artIndex % WALL_ART_TOPICS.length];
-  // 还原照片细节：左墙第 8 幅 (idx=7)、右墙第 5 幅 (idx=16) 为醒目的蓝底手稿！
-  let paperStyle = "sepia";
-  if (artIndex === 7 || artIndex === 16) paperStyle = "blue";
-  else if (artIndex % 5 === 3) paperStyle = "red";
+[-8.6, 8.6].forEach((wx) => {
+  const wallMesh = new THREE.Mesh(new THREE.BoxGeometry(6.8, 2.55, 0.5), flankStoneMat);
+  wallMesh.position.set(wx, 1.275, 0.0);
+  wallMesh.castShadow = true;
+  wallMesh.receiveShadow = true;
+  pavilionGroup.add(wallMesh);
 
-  const artTexData = createArtworkTexture(artIndex, { paperStyle });
+  // 石墙上方的深古铜色高窗格栅腰带 (Upper Clerestory Louver Frieze)
+  const frieze = new THREE.Mesh(new THREE.BoxGeometry(6.8, 0.56, 0.42), darkBronzeMat);
+  frieze.position.set(wx, 2.83, -0.02);
+  pavilionGroup.add(frieze);
+});
 
-  const sideName = wallSide === "left" ? "西侧展墙" : wallSide === "right" ? "东侧展墙" : "正面端景墙";
-  const codeNum = String(artIndex + 1).padStart(2, "0");
+// 5.3 门厅主水平挑檐屋顶 (Horizontal Overhanging Roof Eave)
+const mainRoofEave = new THREE.Mesh(new THREE.BoxGeometry(24.5, 0.22, 3.8), eaveGreyMat);
+mainRoofEave.position.set(0, 3.22, 0.25);
+mainRoofEave.castShadow = true;
+mainRoofEave.receiveShadow = true;
+pavilionGroup.add(mainRoofEave);
 
-  const exhibitData = {
-    id: `A-${codeNum}`,
-    title: `${topic.name} (手稿 #${codeNum})`,
-    enTitle: `LEONARDO MANUSCRIPT FOLIO #${codeNum}`,
-    category: `${sideName} · 达·芬奇手稿真迹复刻`,
-    subtitle: topic.code,
-    material: paperStyle === "blue" ? "威尼斯蓝晒古法手工纸 / 铁胆墨水 / 白粉高光" : "文艺复兴手工麻纸 / 铁胆墨水 / 红粉笔",
-    principle: topic.principle,
-    status: "点击可近距离观赏手稿镜像笔记细节",
-    desc: `本幅手稿陈列于${sideName}第 ${codeNum} 号展位，上方配有独立博物馆级高显色轨道射灯照明。画作采用实木画框与无酸博物馆卡纸装裱，记录了列奥纳多·达·芬奇将艺术观察、解剖学比例与机械工程学融为一体的手绘推演手迹。`,
-    previewUrl: artTexData.dataUrl,
-    focusPos:
-      wallSide === "left"
-        ? new THREE.Vector3(-2.35, 1.56, zPos)
-        : wallSide === "right"
-        ? new THREE.Vector3(2.35, 1.56, zPos)
-        : new THREE.Vector3(0, 1.56, zPos + 1.5),
-    focusTarget:
-      wallSide === "left"
-        ? new THREE.Vector3(-HALL_W / 2, 1.56, zPos)
-        : wallSide === "right"
-        ? new THREE.Vector3(HALL_W / 2, 1.56, zPos)
-        : new THREE.Vector3(xPos, 1.56, zPos),
-  };
-  exhibitList.push(exhibitData);
+const subEave = new THREE.Mesh(
+  new THREE.BoxGeometry(24.2, 0.08, 3.6),
+  new THREE.MeshStandardMaterial({ color: 0x9aa0a4, roughness: 0.4 })
+);
+subEave.position.set(0, 3.36, 0.2);
+pavilionGroup.add(subEave);
 
-  const frameGroup = new THREE.Group();
-  const frameW = 0.46;
-  const frameH = 0.58;
-  const frameDepth = 0.032;
+// 5.4 门厅顶部标志性的香槟金竖向格栅冠顶 (Raised Golden-Bronze Louver Crown)
+const crownMat = louverCrownMat.clone();
+crownMat.map = bronzeLouverMap.clone();
+crownMat.map.repeat.set(3.5, 1.0);
+crownMat.map.needsUpdate = true;
 
-  // 外层木质画框
-  const outerBox = new THREE.Mesh(new THREE.BoxGeometry(frameW, frameH, frameDepth), frameWoodMat);
-  outerBox.castShadow = true;
-  frameGroup.add(outerBox);
+const crownBox = new THREE.Mesh(new THREE.BoxGeometry(14.6, 1.48, 2.8), crownMat);
+crownBox.position.set(0, 4.14, -0.2);
+crownBox.castShadow = true;
+crownBox.receiveShadow = true;
+pavilionGroup.add(crownBox);
 
-  // 画芯平面
-  const artPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(frameW - 0.05, frameH - 0.05),
-    new THREE.MeshStandardMaterial({
-      map: artTexData.texture,
-      roughness: 0.55,
-      metalness: 0.0,
+registerInteractive(pavilionGroup, NODES_META.pavilion);
+createHotspotBadge(new THREE.Vector3(0, 4.35, -9.2), NODES_META.pavilion);
+
+// ============================================================================
+// 6. 东西两侧围合高墙 (Left & Right Courtyard Wing Walls)
+// ============================================================================
+const wingWallsGroup = new THREE.Group();
+scene.add(wingWallsGroup);
+
+const wingStoneMat = stoneWallMat.clone();
+wingStoneMat.map = stoneWallMap.clone();
+wingStoneMat.map.repeat.set(5.5, 1.1);
+wingStoneMat.map.needsUpdate = true;
+
+[-1, 1].forEach((side) => {
+  const wing = new THREE.Group();
+  // 还原原图透视：两侧高墙从中央门厅两端略微向外张开延伸至近景
+  wing.position.set(side * 12.2, 0, -1.0);
+  wing.rotation.y = side * -0.06;
+
+  const wallLen = 22.0;
+  // 下部浅灰花岗岩分缝石墙
+  const lowerStone = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.55, wallLen), wingStoneMat);
+  lowerStone.position.y = 1.275;
+  lowerStone.castShadow = true;
+  lowerStone.receiveShadow = true;
+  wing.add(lowerStone);
+
+  // 中上部深色百叶格栅带
+  const midLouver = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.62, wallLen), darkBronzeMat);
+  midLouver.position.y = 2.86;
+  wing.add(midLouver);
+
+  // 顶部浅白石材压顶梁 + 深灰金属挑檐帽
+  const topCoping = new THREE.Mesh(
+    new THREE.BoxGeometry(0.62, 0.28, wallLen),
+    new THREE.MeshStandardMaterial({ color: 0xdce0e3, roughness: 0.6 })
+  );
+  topCoping.position.y = 3.31;
+  const topCap = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.12, wallLen), eaveGreyMat);
+  topCap.position.y = 3.51;
+  topCap.castShadow = true;
+  wing.add(topCoping, topCap);
+
+  wingWallsGroup.add(wing);
+});
+
+registerInteractive(wingWallsGroup, NODES_META.wall_wing);
+createHotspotBadge(new THREE.Vector3(-11.8, 3.2, 2.0), NODES_META.wall_wing);
+
+// ============================================================================
+// 7. 东西两翼后方的新中式现代叠墅主楼 (Left & Right Background Villa Towers)
+// ============================================================================
+const villasGroup = new THREE.Group();
+scene.add(villasGroup);
+
+function createNeoChineseVilla(xPos, zPos, rotY) {
+  const villa = new THREE.Group();
+  villa.position.set(xPos, 0, zPos);
+  villa.rotation.y = rotY;
+
+  const wallWhiteMat = new THREE.MeshStandardMaterial({ color: 0xe3e7ea, roughness: 0.6 });
+  const winGlassMat = new THREE.MeshPhysicalMaterial({
+    color: 0x62798a,
+    roughness: 0.1,
+    metalness: 0.25,
+    reflectivity: 0.85,
+  });
+  const roofDarkMat = new THREE.MeshStandardMaterial({ color: 0x373c42, roughness: 0.45 });
+
+  // 二层主体 (Y: 3.2 ~ 6.2)
+  const body2F = new THREE.Mesh(new THREE.BoxGeometry(8.2, 3.0, 7.6), wallWhiteMat);
+  body2F.position.y = 4.7;
+  villa.add(body2F);
+
+  const win2F = new THREE.Mesh(new THREE.BoxGeometry(8.26, 2.1, 5.8), winGlassMat);
+  win2F.position.set(0, 4.65, 0.4);
+  villa.add(win2F);
+
+  // 二层挑檐与三层露台玻璃栏板 (Y: 6.2)
+  const eave2F = new THREE.Mesh(new THREE.BoxGeometry(9.8, 0.22, 9.2), wallWhiteMat);
+  eave2F.position.y = 6.25;
+  const eave2FCap = new THREE.Mesh(new THREE.BoxGeometry(10.1, 0.1, 9.5), roofDarkMat);
+  eave2FCap.position.y = 6.41;
+  villa.add(eave2F, eave2FCap);
+
+  // 露台玻璃栏杆
+  const railing = new THREE.Mesh(
+    new THREE.BoxGeometry(9.4, 0.65, 8.8),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xa8c2d1,
+      transparent: true,
+      opacity: 0.38,
+      roughness: 0.1,
     })
   );
-  artPlane.position.z = frameDepth / 2 + 0.002;
-  frameGroup.add(artPlane);
+  railing.position.y = 6.75;
+  villa.add(railing);
 
-  // 表面防眩光博物馆玻璃层（反射 HDR 环境高光）
-  const glassPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(frameW - 0.05, frameH - 0.05),
-    glassCoverMat
-  );
-  glassPlane.position.z = frameDepth / 2 + 0.004;
-  frameGroup.add(glassPlane);
+  // 三层退台主体 (Y: 6.4 ~ 8.6)
+  const body3F = new THREE.Mesh(new THREE.BoxGeometry(6.4, 2.15, 6.2), wallWhiteMat);
+  body3F.position.set(-0.4, 7.48, -0.3);
+  const win3F = new THREE.Mesh(new THREE.BoxGeometry(6.46, 1.55, 4.8), winGlassMat);
+  win3F.position.set(-0.4, 7.45, 0.1);
+  villa.add(body3F, win3F);
 
-  // 画框旁的小型展签牌
-  const labelMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.08, 0.11),
-    new THREE.MeshBasicMaterial({ color: 0xf2f0eb })
-  );
-  labelMesh.position.set(frameW / 2 + 0.07, -frameH / 2 + 0.06, 0.005);
-  frameGroup.add(labelMesh);
+  // 顶层新中式四坡挑檐屋顶 (Hipped Roof)
+  const eave3F = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 7.8), wallWhiteMat);
+  eave3F.position.set(-0.4, 8.62, -0.3);
+  villa.add(eave3F);
 
-  if (wallSide === "left") {
-    frameGroup.position.set(-HALL_W / 2 + 0.02, 1.58, zPos);
-    frameGroup.rotation.y = Math.PI / 2;
-  } else if (wallSide === "right") {
-    frameGroup.position.set(HALL_W / 2 - 0.02, 1.58, zPos);
-    frameGroup.rotation.y = -Math.PI / 2;
-  } else {
-    frameGroup.position.set(xPos, 1.58, zPos + 0.18);
+  const hipRoofGeo = new THREE.ConeGeometry(5.6, 1.05, 4);
+  const hipRoof = new THREE.Mesh(hipRoofGeo, roofDarkMat);
+  hipRoof.rotation.y = Math.PI / 4;
+  hipRoof.scale.set(1.06, 1.0, 1.0);
+  hipRoof.position.set(-0.4, 9.22, -0.3);
+  villa.add(hipRoof);
+
+  return villa;
+}
+
+villasGroup.add(createNeoChineseVilla(-15.6, -6.2, 0.08));
+villasGroup.add(createNeoChineseVilla(15.6, -6.2, -0.08));
+registerInteractive(villasGroup, NODES_META["villa_pair"]);
+createHotspotBadge(new THREE.Vector3(-14.5, 7.8, -5.5), NODES_META["villa_pair"]);
+
+// ============================================================================
+// 8. 曲水镜池与池底同心弧形水波纹铺装 (Zen Wave Mirror Pond)
+// ============================================================================
+const pondGroup = new THREE.Group();
+scene.add(pondGroup);
+
+// 8.1 池底弧形纹理层 (Y = -0.14)
+const pondBottomMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(28, 28),
+  new THREE.MeshStandardMaterial({
+    map: pondTex.bottomMap,
+    roughness: 0.8,
+    metalness: 0.05,
+  })
+);
+pondBottomMesh.rotation.x = -Math.PI / 2;
+pondBottomMesh.position.set(-1.5, -0.14, 4.5);
+pondBottomMesh.receiveShadow = true;
+pondGroup.add(pondBottomMesh);
+
+// 8.2 半透明高反射物理水面层 (Y = 0.0) — 既透出池底弧形条带，又反射天空与绿植
+const waterSurfaceMat = new THREE.MeshPhysicalMaterial({
+  color: 0x182b27,
+  roughness: 0.12,
+  metalness: 0.05,
+  bumpMap: pondTex.waterBump,
+  bumpScale: 0.005,
+  clearcoat: 0.75,
+  clearcoatRoughness: 0.08,
+  transparent: true,
+  opacity: 0.45,
+  reflectivity: 0.85,
+});
+const waterSurfaceMesh = new THREE.Mesh(new THREE.PlaneGeometry(28, 28), waterSurfaceMat);
+waterSurfaceMesh.rotation.x = -Math.PI / 2;
+waterSurfaceMesh.position.set(-1.5, 0.0, 4.5);
+waterSurfaceMesh.receiveShadow = true;
+pondGroup.add(waterSurfaceMesh);
+
+// 中央玻璃门厅正前方的浅水倒影池与灰白石材汀步平台
+const frontPoolMat = new THREE.MeshPhysicalMaterial({
+  color: 0x5c7d8c,
+  roughness: 0.05,
+  metalness: 0.1,
+  clearcoat: 1.0,
+});
+const frontPool = new THREE.Mesh(new THREE.PlaneGeometry(8.5, 4.2), frontPoolMat);
+frontPool.rotation.x = -Math.PI / 2;
+frontPool.position.set(0.8, 0.22, -6.2);
+pondGroup.add(frontPool);
+
+registerInteractive(pondGroup, NODES_META.pond);
+createHotspotBadge(new THREE.Vector3(-4.2, 0.65, 10.2), NODES_META.pond);
+
+// ============================================================================
+// 9. 双岛流线型微地形果岭草坡 (Undulating Velvet Grass Micro-Topography)
+// ============================================================================
+const moundsGroup = new THREE.Group();
+scene.add(moundsGroup);
+
+const grassMat = new THREE.MeshStandardMaterial({
+  map: grassTex.map,
+  bumpMap: grassTex.bumpMap,
+  bumpScale: 0.03,
+  roughness: 0.86,
+  metalness: 0.0,
+});
+
+// 辅助函数：构建平滑起伏的有机微地形网格
+function createSculptedMound(width, depth, segs, heightFn) {
+  const geo = new THREE.PlaneGeometry(width, depth, segs, segs);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    const y = heightFn(x, z);
+    pos.setY(i, y);
   }
-
-  scene.add(frameGroup);
-  registerInteractiveMesh(frameGroup, exhibitData);
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, grassMat);
+  mesh.receiveShadow = true;
+  mesh.castShadow = true;
+  return mesh;
 }
 
-// 左墙 12 幅手稿 (Z 从 3.8 到 -7.2)
-for (let i = 0; i < 12; i++) {
-  const z = 3.8 - i * 1.0;
-  createFramedArtwork(i, "left", z);
-}
+// 9.1 西北侧（左中景）主微地形草坡：从左岸向中央玻璃门厅缓坡隆起
+const leftMound = createSculptedMound(22, 16, 96, (lx, lz) => {
+  // 世界坐标约在 X: [-13, +9], Z: [-9, +7]
+  const wx = lx - 2.2;
+  const wz = lz - 1.2;
 
-// 右墙 12 幅手稿 (Z 从 3.8 到 -7.2)
-for (let i = 0; i < 12; i++) {
-  const z = 3.8 - i * 1.0;
-  createFramedArtwork(i + 12, "right", z);
-}
+  // 主草坡隆起核心在 (-1.2, -1.8) 与 (-5.8, 0.8)
+  const d1 = Math.hypot((wx + 1.2) / 5.6, (wz + 1.8) / 4.2);
+  const d2 = Math.hypot((wx + 6.5) / 6.2, (wz - 0.8) / 4.5);
+  const h1 = Math.max(0, 1.38 * Math.exp(-d1 * d1 * 1.15));
+  const h2 = Math.max(0, 1.18 * Math.exp(-d2 * d2 * 1.1));
 
-// 远端中央隔断墙正中 1 幅手稿 (Z = -10.8)
-createFramedArtwork(24, "center", -10.8, 0);
+  // 左前景水池切口裁剪 (让左前景 X < -1.0, Z > 3.2 沉入水底)
+  const pondCut = Math.hypot((wx + 4.8) / 6.2, (wz - 6.8) / 4.2);
+  const cutFactor = THREE.MathUtils.smoothstep(pondCut, 0.65, 1.15);
+
+  return (h1 + h2 * 0.75) * cutFactor - 0.22;
+});
+leftMound.position.set(-2.2, 0, -1.2);
+moundsGroup.add(leftMound);
+
+// 9.2 东南侧（右前景至右中景）流线型半岛微地形草坡：环抱左前景曲水湾
+const rightMound = createSculptedMound(22, 22, 96, (lx, lz) => {
+  const wx = lx + 3.2;
+  const wz = lz + 3.5;
+
+  // 形成照片右下至中景偏左的优美弧形半岛岸线
+  const dFront = Math.hypot((wx - 1.2) / 5.8, (wz - 7.5) / 5.2);
+  const dMidRight = Math.hypot((wx - 6.5) / 6.8, (wz - 0.5) / 6.2);
+  const dFarRight = Math.hypot((wx - 7.2) / 6.5, (wz + 4.5) / 5.0);
+
+  const h =
+    1.12 * Math.exp(-dFront * dFront * 0.95) +
+    1.42 * Math.exp(-dMidRight * dMidRight * 0.9) +
+    1.05 * Math.exp(-dFarRight * dFarRight * 1.1);
+
+  // 确保左前景水池湾 (wx < -1.2 && wz > 4.2) 保持干净的水岸线
+  const bayDist = Math.hypot((wx + 4.6) / 4.6, (wz - 8.2) / 4.8);
+  const shoreMask = THREE.MathUtils.smoothstep(bayDist, 0.78, 1.12);
+
+  return h * shoreMask - 0.24;
+});
+rightMound.position.set(3.2, 0, 3.5);
+moundsGroup.add(rightMound);
+
+registerInteractive(moundsGroup, NODES_META.mound_left);
+createHotspotBadge(new THREE.Vector3(-1.8, 1.65, -0.5), NODES_META.mound_left);
 
 // ============================================================================
-// 8. 展厅观众人物模型（还原照片中 2号展台旁驻足观展的灰衣女士与蓝衣小男孩）
+// 10. 泰山景石、修剪灌木球群落与造型罗汉松 (Rocks, Cushion Shrubs & Cloud Pines)
 // ============================================================================
-const visitorsGroup = new THREE.Group();
-scene.add(visitorsGroup);
+// 10.1 泰山天然景石生成器 (Weathered Landscape Boulders)
+const rockMat = new THREE.MeshStandardMaterial({
+  color: 0x7c786e,
+  roughness: 0.88,
+  metalness: 0.04,
+  bumpMap: grassTex.bumpMap,
+  bumpScale: 0.04,
+});
 
-function buildVisitors() {
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xe8be9e, roughness: 0.6 });
-  const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a1817, roughness: 0.45 });
-  const greyCoatMat = new THREE.MeshStandardMaterial({ color: 0x616569, roughness: 0.75 });
-  const greyPantsMat = new THREE.MeshStandardMaterial({ color: 0x8e9399, roughness: 0.7 });
-  const blackBagMat = new THREE.MeshStandardMaterial({ color: 0x161618, roughness: 0.4 });
-  const boyShirtMat = new THREE.MeshStandardMaterial({ color: 0xa8c6df, roughness: 0.65 });
-  const boyPantsMat = new THREE.MeshStandardMaterial({ color: 0x1c212b, roughness: 0.7 });
+function createBoulder(x, y, z, sx, sy, sz, rotY = 0) {
+  const geo = new THREE.DodecahedronGeometry(1.0, 2);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const vx = pos.getX(i);
+    const vy = pos.getY(i);
+    const vz = pos.getZ(i);
+    const n = 1.0 + 0.18 * Math.sin(vx * 3.7 + vz * 2.3) * Math.cos(vy * 4.1);
+    pos.setXYZ(i, vx * n, vy * n, vz * n);
+  }
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, rockMat);
+  mesh.position.set(x, y, z);
+  mesh.scale.set(sx, sy, sz);
+  mesh.rotation.set(0.1, rotY, -0.08);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  moundsGroup.add(mesh);
+}
 
-  // 1) 右侧灰衣长发女士 (站在 2号展台右侧，面向展台侧身驻足，背黑色单肩包)
-  const woman = new THREE.Group();
-  woman.position.set(0.68, 0, -0.45);
-  woman.rotation.y = -Math.PI * 0.42;
+// 精准对应照片中的关键景石位置：
+// (a) 左岸水际与草坡交界景石群
+createBoulder(-9.2, 0.15, 5.2, 0.75, 0.42, 0.55, 0.4);
+createBoulder(-8.8, 0.65, 2.2, 0.85, 0.48, 0.65, -0.3);
+createBoulder(-6.1, 0.58, 1.4, 0.95, 0.52, 0.68, 0.2);
+createBoulder(-5.8, 0.25, 2.2, 0.62, 0.28, 0.48, 0.8);
+// (b) 右前景半岛草坡上的大块斜卧景石（原图正中偏下醒目的灰褐色景石）
+createBoulder(0.85, 0.46, 8.2, 0.92, 0.38, 0.58, -0.45);
+createBoulder(0.42, 0.68, 6.2, 0.68, 0.32, 0.48, 0.25);
 
-  // 灰色阔腿裤双腿
-  const legGeo = new THREE.CylinderGeometry(0.085, 0.105, 0.78, 14);
-  const legL = new THREE.Mesh(legGeo, greyPantsMat);
-  legL.position.set(-0.08, 0.39, 0.04);
-  const legR = new THREE.Mesh(legGeo, greyPantsMat);
-  legR.position.set(0.08, 0.39, -0.06);
-  legR.rotation.x = 0.14;
+// 10.2 修剪球形灌木群落 (Trimmed Spherical Cushion Shrubs)
+const shrubMatLight = new THREE.MeshStandardMaterial({
+  map: shrubFoliageLight.map,
+  bumpMap: shrubFoliageLight.bumpMap,
+  bumpScale: 0.045,
+  roughness: 0.88,
+});
+const shrubMatDark = new THREE.MeshStandardMaterial({
+  map: shrubFoliageDark.map,
+  bumpMap: shrubFoliageDark.bumpMap,
+  bumpScale: 0.045,
+  roughness: 0.9,
+});
 
-  // 灰色针织开衫上衣
-  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.14, 0.56, 16), greyCoatMat);
-  torso.position.set(0, 1.04, 0);
-
-  // 头部与黑色长发
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.105, 16, 16), skinMat);
-  head.position.set(0, 1.44, 0.02);
-  const hair = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.36, 0.18), hairMat);
-  hair.position.set(0, 1.36, -0.04);
-
-  // 黑色单肩挎包（还原照片中女士身侧的黑色圆弧包）
-  const bag = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), blackBagMat);
-  bag.scale.set(0.65, 0.85, 1.15);
-  bag.position.set(0.16, 0.88, -0.08);
-
-  woman.add(legL, legR, torso, head, hair, bag);
-  woman.traverse((m) => {
-    if (m.isMesh) {
-      m.castShadow = true;
-      m.receiveShadow = true;
-    }
-  });
-  visitorsGroup.add(woman);
-
-  // 2) 左侧浅蓝短袖小男孩 (站在 2号展台左侧，微侧身看向展台)
-  const boy = new THREE.Group();
-  boy.position.set(-0.82, 0, -0.65);
-  boy.rotation.y = Math.PI * 0.25;
-
-  const bLegGeo = new THREE.CylinderGeometry(0.055, 0.06, 0.44, 12);
-  const bLegL = new THREE.Mesh(bLegGeo, boyPantsMat);
-  bLegL.position.set(-0.065, 0.22, 0);
-  const bLegR = new THREE.Mesh(bLegGeo, boyPantsMat);
-  bLegR.position.set(0.065, 0.22, 0);
-
-  const bTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.105, 0.36, 14), boyShirtMat);
-  bTorso.position.set(0, 0.60, 0);
-
-  const bHead = new THREE.Mesh(new THREE.SphereGeometry(0.095, 16, 16), skinMat);
-  bHead.position.set(0, 0.89, 0);
-  const bHair = new THREE.Mesh(
-    new THREE.SphereGeometry(0.098, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55),
-    hairMat
+function addShrub(x, y, z, rx, ry, rz, isDark = false) {
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(1.0, 20, 16),
+    isDark ? shrubMatDark : shrubMatLight
   );
-  bHair.position.set(0, 0.90, 0);
-
-  boy.add(bLegL, bLegR, bTorso, bHead, bHair);
-  boy.traverse((m) => {
-    if (m.isMesh) {
-      m.castShadow = true;
-      m.receiveShadow = true;
-    }
-  });
-  visitorsGroup.add(boy);
+  mesh.position.set(x, y, z);
+  mesh.scale.set(rx, ry, rz);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  moundsGroup.add(mesh);
 }
-buildVisitors();
+
+// 左岸与左中景草坡上的修剪灌木球簇
+const SHRUB_LIST = [
+  // 左岸前景与中景
+  [-10.2, 0.45, 4.2, 1.15, 0.78, 1.05, true],
+  [-8.0, 0.48, 3.0, 1.05, 0.68, 0.95, false],
+  [-7.2, 0.85, 0.5, 0.92, 0.58, 0.85, false],
+  [-4.6, 0.52, 1.4, 1.35, 0.82, 1.18, true],
+  [-3.2, 0.32, 2.2, 0.88, 0.54, 0.82, false],
+  [-5.5, 1.15, -2.5, 1.1, 0.65, 1.0, false],
+  [-3.8, 1.18, -3.5, 0.95, 0.58, 0.9, true],
+  // 右侧半岛中景与前景灌木球簇
+  [-0.2, 0.45, 5.2, 0.68, 0.42, 0.65, false],
+  [0.9, 0.62, 4.4, 0.72, 0.46, 0.68, true],
+  [2.5, 0.82, 3.6, 1.38, 0.78, 1.18, false],
+  [4.8, 0.85, 3.2, 1.52, 0.92, 1.35, true],
+  [6.6, 0.65, 3.8, 0.95, 0.6, 0.9, false],
+  [3.6, 1.15, 0.8, 1.25, 0.72, 1.1, false],
+  [5.2, 1.22, -0.5, 1.3, 0.76, 1.15, true],
+  [1.6, 0.28, 9.2, 0.85, 0.48, 0.78, false],
+  // 右下角前景大灌木球簇
+  [4.6, 0.15, 12.2, 1.45, 0.85, 1.25, true],
+  [6.8, 0.35, 10.8, 1.65, 0.98, 1.4, false],
+  [8.6, 0.55, 8.8, 1.55, 0.92, 1.35, true],
+  [9.8, 0.72, 6.5, 1.4, 0.85, 1.2, false],
+];
+SHRUB_LIST.forEach((s) => addShrub(...s));
+
+// 10.3 造型罗汉松/迎客松生成器 (Sculpted Cloud-Pruned Pine Trees)
+const trunkMat = new THREE.MeshStandardMaterial({
+  color: 0x5c4632,
+  roughness: 0.85,
+});
+const pinePadMat = new THREE.MeshStandardMaterial({
+  map: pineFoliageTex.map,
+  bumpMap: pineFoliageTex.bumpMap,
+  bumpScale: 0.05,
+  roughness: 0.85,
+});
+
+function createCloudPineTree(x, y, z, scale = 1.0, seedOffset = 0) {
+  const tree = new THREE.Group();
+  tree.position.set(x, y, z);
+  tree.scale.setScalar(scale);
+
+  // 蜿蜒苍劲的主树干与分枝
+  const mainTrunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.11, 0.24, 3.8, 12),
+    trunkMat
+  );
+  mainTrunk.position.set(0, 1.85, 0);
+  mainTrunk.rotation.z = 0.08;
+  mainTrunk.castShadow = true;
+  tree.add(mainTrunk);
+
+  const upperTrunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.11, 1.8, 10),
+    trunkMat
+  );
+  upperTrunk.position.set(-0.12, 4.2, 0.05);
+  upperTrunk.rotation.z = -0.12;
+  upperTrunk.castShadow = true;
+  tree.add(upperTrunk);
+
+  // 错落有致的水平层云状松针翠盖 (Cloud Foliage Pads)
+  const pads = [
+    // [px, py, pz, rx, ry, rz]
+    [-1.35, 1.85, 0.2, 0.95, 0.26, 0.75],
+    [-0.65, 2.05, 0.35, 0.72, 0.24, 0.65],
+    [1.15, 1.95, -0.15, 0.92, 0.26, 0.72],
+    [0.55, 2.35, 0.25, 0.78, 0.25, 0.68],
+    [-1.05, 2.75, -0.1, 0.88, 0.26, 0.72],
+    [0.95, 2.95, 0.1, 0.85, 0.25, 0.7],
+    [-0.45, 3.35, 0.2, 0.76, 0.24, 0.65],
+    [0.65, 3.65, -0.15, 0.74, 0.24, 0.62],
+    [-0.68, 4.05, 0.0, 0.72, 0.24, 0.6],
+    [0.35, 4.42, 0.08, 0.68, 0.23, 0.58],
+    [-0.12, 4.95, 0.0, 0.82, 0.28, 0.72],
+  ];
+
+  pads.forEach(([px, py, pz, rx, ry, rz], idx) => {
+    // 连接侧枝
+    const branchLen = Math.hypot(px, 0.35, pz);
+    const branch = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.035, 0.06, branchLen, 8),
+      trunkMat
+    );
+    branch.position.set(px * 0.5, py - 0.18, pz * 0.5);
+    branch.rotation.z = px > 0 ? -0.95 : 0.95;
+    branch.castShadow = true;
+    tree.add(branch);
+
+    // 片云松针团簇（主云片 + 顶部微隆起子团簇，避免生硬椭圆感）
+    const padMesh = new THREE.Mesh(new THREE.SphereGeometry(1.0, 18, 14), pinePadMat);
+    padMesh.position.set(px, py, pz);
+    padMesh.scale.set(rx, ry, rz);
+    padMesh.castShadow = true;
+    padMesh.receiveShadow = true;
+    tree.add(padMesh);
+
+    const subPad = new THREE.Mesh(new THREE.SphereGeometry(0.72, 14, 12), shrubMatDark);
+    subPad.position.set(px + (idx % 2 === 0 ? 0.18 : -0.18), py + 0.11, pz + 0.08);
+    subPad.scale.set(rx * 0.85, ry * 0.9, rz * 0.85);
+    subPad.castShadow = true;
+    tree.add(subPad);
+  });
+
+  return tree;
+}
+
+// 东侧（右中景）主景特选造型罗汉松（原图右侧石墙前最醒目的迎客松）
+const eastHeroPine = createCloudPineTree(6.2, 0.85, -3.4, 1.08);
+scene.add(eastHeroPine);
+registerInteractive(eastHeroPine, NODES_META.pine_right);
+createHotspotBadge(new THREE.Vector3(6.2, 5.1, -3.4), NODES_META.pine_right);
+
+// 西侧（左中景）两株造型松
+const westPine1 = createCloudPineTree(-5.2, 0.95, -3.6, 0.84);
+westPine1.rotation.y = 0.6;
+const westPine2 = createCloudPineTree(-8.4, 0.72, -0.5, 0.68);
+westPine2.rotation.y = -0.5;
+scene.add(westPine1, westPine2);
+
+// 左右两侧前景画框式探出松枝与背景乔木林冠（采用多团簇有机树冠组合替代单一球体）
+const framingTreesGroup = new THREE.Group();
+scene.add(framingTreesGroup);
+
+function addClusteredTreeCanopy(cx, cy, cz, radius, isDark = true) {
+  const group = new THREE.Group();
+  group.position.set(cx, cy, cz);
+  const mat = isDark ? shrubMatDark : pinePadMat;
+  const offsets = [
+    [0, 0, 0, 1.0, 0.75, 1.0],
+    [-0.65, -0.25, 0.35, 0.78, 0.62, 0.78],
+    [0.68, -0.2, 0.25, 0.75, 0.58, 0.75],
+    [-0.35, 0.48, -0.2, 0.72, 0.58, 0.72],
+    [0.42, 0.42, 0.15, 0.68, 0.55, 0.68],
+    [0.0, -0.45, 0.55, 0.7, 0.52, 0.65],
+  ];
+  offsets.forEach(([ox, oy, oz, sx, sy, sz]) => {
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(radius, 14, 12), mat);
+    puff.position.set(ox * radius, oy * radius, oz * radius);
+    puff.scale.set(sx, sy, sz);
+    puff.castShadow = true;
+    group.add(puff);
+  });
+  framingTreesGroup.add(group);
+}
+
+// 院墙后方与叠墅前方的浓密乔木林冠层
+addClusteredTreeCanopy(-12.8, 3.6, -4.8, 1.65, false);
+addClusteredTreeCanopy(-10.2, 3.4, -7.2, 1.5, true);
+addClusteredTreeCanopy(-14.2, 3.9, -1.8, 1.6, true);
+addClusteredTreeCanopy(12.8, 3.6, -4.8, 1.65, false);
+addClusteredTreeCanopy(10.2, 3.4, -7.2, 1.5, true);
+addClusteredTreeCanopy(14.2, 3.9, -1.8, 1.6, true);
+
+// 左右前景画框边缘探出的松枝与树丛
+addClusteredTreeCanopy(-13.6, 3.2, 10.5, 1.85, true);
+addClusteredTreeCanopy(-13.2, 1.4, 11.2, 1.45, false);
+addClusteredTreeCanopy(13.8, 4.8, 11.0, 2.1, true);
+addClusteredTreeCanopy(13.2, 2.2, 10.2, 1.55, false);
 
 // ============================================================================
-// 9. 鼠标悬停 (Hover) 与点击弹窗 (Modal) 交互逻辑 + 相机平滑飞行过渡
+// 11. 鼠标/触控 Raycaster 悬停提示与点击弹窗交互 + 相机平滑飞行
 // ============================================================================
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -2396,7 +2199,6 @@ const ttSub = document.getElementById("tt-sub");
 let pointerDownPos = { x: 0, y: 0 };
 let currentExhibit = null;
 
-// 相机飞行插值状态
 const camTransition = {
   active: false,
   startPos: new THREE.Vector3(),
@@ -2404,10 +2206,10 @@ const camTransition = {
   startTarget: new THREE.Vector3(),
   endTarget: new THREE.Vector3(),
   progress: 0,
-  duration: 0.85,
+  duration: 0.9,
 };
 
-function flyCameraTo(targetPos, lookAtTarget, duration = 0.85) {
+function flyCameraTo(targetPos, lookAtTarget, duration = 0.9) {
   camTransition.startPos.copy(camera.position);
   camTransition.endPos.copy(targetPos);
   camTransition.startTarget.copy(controls.target);
@@ -2435,7 +2237,7 @@ renderer.domElement.addEventListener("pointermove", (event) => {
     document.body.style.cursor = "pointer";
     ttTag.textContent = ex.category;
     ttTitle.textContent = ex.title;
-    ttSub.textContent = "点击打开展品详解弹窗与3D视角聚焦";
+    ttSub.textContent = "点击打开节点解析弹窗与视角聚焦";
     tooltip.style.left = `${event.clientX}px`;
     tooltip.style.top = `${event.clientY}px`;
     tooltip.classList.add("visible");
@@ -2452,19 +2254,18 @@ renderer.domElement.addEventListener("pointerdown", (event) => {
 
 renderer.domElement.addEventListener("pointerup", (event) => {
   const dist = Math.hypot(event.clientX - pointerDownPos.x, event.clientY - pointerDownPos.y);
-  if (dist > 6) return; // 排除拖拽旋转相机的操作
+  if (dist > 6) return;
 
   updatePointerNDC(event);
   raycaster.setFromCamera(pointer, camera);
   const hits = raycaster.intersectObjects(interactables, false);
 
   if (hits.length > 0 && hits[0].object.userData.exhibit) {
-    const ex = hits[0].object.userData.exhibit;
-    openExhibitModal(ex);
+    openExhibitModal(hits[0].object.userData.exhibit);
   }
 });
 
-// 弹窗 DOM 控制
+// 弹窗控制
 const modalBackdrop = document.getElementById("exhibit-modal");
 const modalImg = document.getElementById("modal-img");
 const modalCaption = document.getElementById("modal-caption");
@@ -2476,7 +2277,6 @@ const specMaterial = document.getElementById("spec-material");
 const specPrinciple = document.getElementById("spec-principle");
 const specStatus = document.getElementById("spec-status");
 const modalDesc = document.getElementById("modal-desc");
-const btnModalAnimate = document.getElementById("btn-modal-animate");
 
 function openExhibitModal(ex) {
   currentExhibit = ex;
@@ -2491,18 +2291,9 @@ function openExhibitModal(ex) {
   specStatus.textContent = ex.status;
   modalDesc.textContent = ex.desc;
 
-  if (typeof ex.mechIndex === "number") {
-    btnModalAnimate.style.display = "flex";
-    // 点击展台时自动触发一次曲柄与齿轮加速运转
-    animatedMechanisms[ex.mechIndex].activeBoost = 4.5;
-  } else {
-    btnModalAnimate.style.display = "none";
-  }
-
   if (ex.focusPos && ex.focusTarget) {
     flyCameraTo(ex.focusPos, ex.focusTarget, 0.9);
   }
-
   modalBackdrop.classList.add("open");
 }
 
@@ -2521,15 +2312,57 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeExhibitModal();
 });
 
-// 弹窗内按钮：摇动曲柄演示机械运转
-btnModalAnimate.addEventListener("click", () => {
-  if (currentExhibit && typeof currentExhibit.mechIndex === "number") {
-    animatedMechanisms[currentExhibit.mechIndex].activeBoost = 6.0;
-    closeExhibitModal();
+// ============================================================================
+// 12. HDR 天候模式切换与控制台交互
+// ============================================================================
+const hdrSelect = document.getElementById("select-hdr-mode");
+const hdrBadge = document.getElementById("hdr-status-badge");
+
+function applyHDRWeatherMode(mode) {
+  hdrSelect.value = mode;
+  const tex = hdrCache[mode] || hdrCache.morning;
+  scene.environment = tex;
+  scene.background = tex;
+
+  if (mode === "morning") {
+    scene.fog.color.setHex(0xdce6ed);
+    sunLight.color.setHex(0xfff8eb);
+    sunLight.intensity = 2.45;
+    hemiLight.intensity = 0.65;
+    lobbyWarmLight.intensity = 28;
+    lobbyBackdropMat.emissiveIntensity = 0.55;
+    pondNightLight.intensity = 0;
+    hdrBadge.textContent = "晨曦云雾 HDR";
+  } else if (mode === "sunset") {
+    scene.fog.color.setHex(0xd49c72);
+    sunLight.color.setHex(0xffa452);
+    sunLight.intensity = 2.8;
+    hemiLight.intensity = 0.45;
+    lobbyWarmLight.intensity = 42;
+    lobbyBackdropMat.emissiveIntensity = 0.95;
+    pondNightLight.intensity = 6;
+    hdrBadge.textContent = "夕阳金辉 HDR";
+  } else if (mode === "night") {
+    scene.fog.color.setHex(0x121d2b);
+    sunLight.color.setHex(0x6b8ec2);
+    sunLight.intensity = 0.55;
+    hemiLight.intensity = 0.2;
+    lobbyWarmLight.intensity = 65;
+    lobbyBackdropMat.emissiveIntensity = 1.65;
+    pondNightLight.intensity = 24;
+    hdrBadge.textContent = "月夜华灯 HDR";
   }
+}
+
+hdrSelect.addEventListener("change", (e) => applyHDRWeatherMode(e.target.value));
+
+document.getElementById("btn-modal-time").addEventListener("click", () => {
+  const order = ["morning", "sunset", "night"];
+  const next = order[(order.indexOf(hdrSelect.value) + 1) % order.length];
+  applyHDRWeatherMode(next);
+  closeExhibitModal();
 });
 
-// 弹窗内按钮：中文语音导览讲解
 document.getElementById("btn-modal-voice").addEventListener("click", () => {
   if (!currentExhibit || !("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
@@ -2541,31 +2374,26 @@ document.getElementById("btn-modal-voice").addEventListener("click", () => {
   window.speechSynthesis.speak(utter);
 });
 
-// 弹窗内按钮：切换下一件展品
 document.getElementById("btn-modal-next").addEventListener("click", () => {
   if (!currentExhibit) return;
   const idx = exhibitList.indexOf(currentExhibit);
-  const nextEx = exhibitList[(idx + 1) % exhibitList.length];
-  openExhibitModal(nextEx);
+  openExhibitModal(exhibitList[(idx + 1) % exhibitList.length]);
 });
 
-// 弹窗内按钮：返回原照片视角
 document.getElementById("btn-modal-reset-cam").addEventListener("click", () => {
   closeExhibitModal();
+  camera.fov = CAMERA_PRESETS.photo.fov;
+  camera.updateProjectionMatrix();
   flyCameraTo(CAMERA_PRESETS.photo.pos, CAMERA_PRESETS.photo.target, 0.9);
 });
 
-// ============================================================================
-// 10. 顶部与底部 UI 面板事件绑定
-// ============================================================================
-// 底部预设机位切换
+// 底部相机按钮
 const camButtons = document.querySelectorAll(".cam-btn");
 camButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     camButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-    const key = btn.dataset.cam;
-    const preset = CAMERA_PRESETS[key];
+    const preset = CAMERA_PRESETS[btn.dataset.cam];
     if (preset) {
       camera.fov = preset.fov;
       camera.updateProjectionMatrix();
@@ -2581,7 +2409,7 @@ document.getElementById("btn-match-photo").addEventListener("click", () => {
   flyCameraTo(CAMERA_PRESETS.photo.pos, CAMERA_PRESETS.photo.target, 0.85);
 });
 
-// 顶部开关按钮
+// 顶部开关
 const btnToggleRef = document.getElementById("btn-toggle-ref");
 const refCard = document.getElementById("ref-card");
 btnToggleRef.addEventListener("click", () => {
@@ -2597,22 +2425,11 @@ btnToggleHotspots.addEventListener("click", () => {
   hotspotSprites.forEach((s) => (s.visible = hotspotsVisible));
 });
 
-const btnToggleVisitors = document.getElementById("btn-toggle-visitors");
-btnToggleVisitors.addEventListener("click", () => {
-  visitorsGroup.visible = !visitorsGroup.visible;
-  btnToggleVisitors.classList.toggle("active", visitorsGroup.visible);
-});
-
 const btnToggleHdr = document.getElementById("btn-toggle-hdr");
 const hdrPanel = document.getElementById("hdr-panel");
 btnToggleHdr.addEventListener("click", () => {
   btnToggleHdr.classList.toggle("active");
   hdrPanel.classList.toggle("hidden");
-});
-
-// HDR 控制滑块
-document.getElementById("select-hdr-mode").addEventListener("change", (e) => {
-  switchEnvironmentMap(e.target.value);
 });
 
 document.getElementById("slider-env-intensity").addEventListener("input", (e) => {
@@ -2621,35 +2438,34 @@ document.getElementById("slider-env-intensity").addEventListener("input", (e) =>
   document.getElementById("val-env-intensity").textContent = val.toFixed(2);
 });
 
+document.getElementById("slider-sun-angle").addEventListener("input", (e) => {
+  const deg = parseFloat(e.target.value);
+  updateSunPosition(deg, 31);
+  document.getElementById("val-sun-angle").textContent = `${deg}°`;
+});
+
 document.getElementById("slider-exposure").addEventListener("input", (e) => {
   const val = parseFloat(e.target.value);
   renderer.toneMappingExposure = val;
   document.getElementById("val-exposure").textContent = val.toFixed(2);
 });
 
-document.getElementById("slider-env-rot").addEventListener("input", (e) => {
-  const deg = parseFloat(e.target.value);
-  scene.environmentRotation.y = THREE.MathUtils.degToRad(deg);
-  document.getElementById("val-env-rot").textContent = `${deg}°`;
-});
-
-document.getElementById("slider-spot-intensity").addEventListener("input", (e) => {
-  const mult = parseFloat(e.target.value);
-  galleryLights.forEach((item) => {
-    item.light.intensity = item.baseIntensity * mult;
-  });
-  mainShadowLight.intensity = 1.15 * mult;
-  document.getElementById("val-spot-intensity").textContent = mult.toFixed(2);
-});
-
-document.getElementById("slider-floor-coat").addEventListener("input", (e) => {
+document.getElementById("slider-lobby-glow").addEventListener("input", (e) => {
   const val = parseFloat(e.target.value);
-  floorMat.clearcoat = val;
-  document.getElementById("val-floor-coat").textContent = val.toFixed(2);
+  lobbyWarmLight.intensity = 22 * val;
+  lobbyBackdropMat.emissiveIntensity = 0.45 * val;
+  document.getElementById("val-lobby-glow").textContent = val.toFixed(2);
 });
+
+if (window.innerWidth <= 760) {
+  refCard.classList.add("hidden");
+  btnToggleRef.classList.remove("active");
+  hdrPanel.classList.add("hidden");
+  btnToggleHdr.classList.remove("active");
+}
 
 // ============================================================================
-// 11. 动画主循环 (使用 THREE.Timer 遵循 r186 规范)
+// 13. 动画主循环 (水面微澜 + 热点呼吸 + 镜头平滑插值)
 // ============================================================================
 const timer = new THREE.Timer();
 timer.connect(document);
@@ -2659,7 +2475,6 @@ function animate() {
   const delta = timer.getDelta();
   const elapsed = timer.getElapsed();
 
-  // 相机平滑飞行过渡
   if (camTransition.active) {
     camTransition.progress += delta / camTransition.duration;
     if (camTransition.progress >= 1.0) {
@@ -2673,46 +2488,21 @@ function animate() {
 
   controls.update(delta);
 
-  // 3D 交互热点轻微上下呼吸浮动
+  // 水面微澜动态偏移
+  pondTex.waterBump.offset.x = elapsed * 0.018;
+  pondTex.waterBump.offset.y = Math.sin(elapsed * 0.4) * 0.012;
+
   if (hotspotsVisible) {
     hotspotSprites.forEach((sp, i) => {
-      sp.position.y = sp.userData.baseY + Math.sin(elapsed * 2.6 + i * 1.3) * 0.045;
+      sp.position.y = sp.userData.baseY + Math.sin(elapsed * 2.4 + i * 1.1) * 0.07;
     });
   }
-
-  // 机械展台齿轮与曲柄运转动画
-  animatedMechanisms.forEach((mech) => {
-    const baseSpeed = 0.25;
-    const boost = mech.activeBoost > 0 ? 4.5 : 0;
-    if (mech.activeBoost > 0) {
-      mech.activeBoost = Math.max(0, mech.activeBoost - delta);
-    }
-    const speedMult = baseSpeed + boost;
-
-    if (mech.crankGroup && mech.activeBoost > 0) {
-      mech.crankGroup.rotation.x += delta * speedMult * 1.5;
-    } else if (mech.crankGroup) {
-      // 静止时保持与原照片一致的垂直向下姿态 (rotation.x 缓动归零)
-      mech.crankGroup.rotation.x = THREE.MathUtils.lerp(mech.crankGroup.rotation.x % (Math.PI * 2), 0, delta * 3);
-    }
-
-    mech.gears.forEach((g) => {
-      g.mesh.rotation.x += delta * g.speed * speedMult;
-    });
-  });
 
   renderer.render(scene, camera);
 }
 
 renderer.setAnimationLoop(animate);
 
-
-if (window.innerWidth <= 760) {
-  document.getElementById("ref-card")?.classList.add("hidden");
-  document.getElementById("btn-toggle-ref")?.classList.remove("active");
-  document.getElementById("hdr-panel")?.classList.add("hidden");
-  document.getElementById("btn-toggle-hdr")?.classList.remove("active");
-}
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
