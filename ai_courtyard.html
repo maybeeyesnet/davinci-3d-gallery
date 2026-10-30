@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI 深度神经重建 · 新中式禅意水院 (照片级 3D 视差与实时 Shader 交互)</title>
+  <title>一图造境 3D · 新中式禅意水院 (AI 深度视差与实时 Shader 交互)</title>
   <script type="importmap">
   {
     "imports": {
@@ -206,18 +206,18 @@
 
   <div class="top-bar">
     <div class="brand-card">
-      <div class="brand-badge">AI</div>
+      <div class="brand-badge">造境</div>
       <div class="brand-text">
-        <h1>AI 深度神经重建 · 新中式禅意水院 (照片级实景交互版)</h1>
+        <h1>一图造境 3D · 单层深度 Shader 水院 (基础对照版)</h1>
         <p>15万面 AI 深度视差网格 · 实时 GLSL 动态水波/松风 · 100% 原图写实画质 + 3D 弹窗</p>
       </div>
     </div>
 
     <div class="top-actions">
-      <button class="pill-btn active" id="btn-toggle-hotspots"><span>✨ 3D 空间热点</span></button>
+      <a class="pill-btn" href="./marble_world.html"><span>🌐 实验1：Marble多层补全</span></a>
+      <a class="pill-btn" href="./gaussian_splat.html"><span>✨ 实验2：SHARP 3D高斯泼溅(.splat)</span></a>
       <button class="pill-btn" id="btn-toggle-depth"><span>🔍 AI 深度图检视</span></button>
-      <button class="pill-btn active" id="btn-toggle-hdr"><span>☀️ AI 光影与水波控制台</span></button>
-      <a class="pill-btn" href="./courtyard.html"><span>🧊 对比几何白模版</span></a>
+      <button class="pill-btn active" id="btn-toggle-hdr"><span>☀️ 光影控制台</span></button>
       <a class="pill-btn" href="./gallery.html"><span>🏛️ 达芬奇展厅</span></a>
     </div>
   </div>
@@ -829,11 +829,13 @@
 
     let hotspotsOn = true;
     const btnHotspots = document.getElementById("btn-toggle-hotspots");
-    btnHotspots.addEventListener("click", () => {
-      hotspotsOn = !hotspotsOn;
-      btnHotspots.classList.toggle("active", hotspotsOn);
-      hotspotSprites.forEach((s) => (s.visible = hotspotsOn));
-    });
+    if (btnHotspots) {
+      btnHotspots.addEventListener("click", () => {
+        hotspotsOn = !hotspotsOn;
+        btnHotspots.classList.toggle("active", hotspotsOn);
+        hotspotSprites.forEach((s) => (s.visible = hotspotsOn));
+      });
+    }
 
     const btnHdr = document.getElementById("btn-toggle-hdr");
     const hdrPanel = document.getElementById("hdr-panel");

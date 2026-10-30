@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>一图造境 3D · 实验 2：Apple SHARP 单图 3D 高斯泼溅 (GaussianSplats3D .splat)</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/controls/OrbitControls.js": "./vendor/OrbitControls.js",
+      "@mkkellogg/gaussian-splats-3d": "./vendor/gaussian-splats-3d.module.js"
+    }
+  }
+  </script>
+  <style>
+    :root {
+      --bg-glass: rgba(14, 16, 24, 0.85);
+      --border-glass: rgba(130, 170, 255, 0.34);
+      --accent: #5b8def;
+      --accent-bright: #9ec0ff;
+      --gold: #f0c97d;
+      --text-main: #f3f6fc;
+      --text-muted: #a4b1c9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0b0e16;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+    }
+    #canvas-container { width: 100%; height: 100%; position: relative; }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    .top-bar {
+      position: fixed; top: 14px; left: 18px; right: 18px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none; z-index: 25; flex-wrap: wrap; gap: 10px;
+    }
+    .brand-card {
+      pointer-events: auto; background: var(--bg-glass);
+      backdrop-filter: blur(16px); border: 1px solid var(--border-glass);
+      border-radius: 14px; padding: 10px 15px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+    }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: linear-gradient(135deg, #5b8def, #2a498f);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 12.5px; color: #fff;
+      box-shadow: 0 0 14px rgba(91,141,239,0.5);
+    }
+    .brand-text h1 { font-size: 14.5px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .brand-tag {
+      font-size: 10.5px; padding: 2px 7px; border-radius: 6px;
+      background: rgba(91,141,239,0.25); border: 1px solid var(--accent-bright);
+      color: var(--accent-bright); font-weight: 600;
+    }
+    .brand-text p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .top-actions { pointer-events: auto; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+    .pill-btn {
+      background: var(--bg-glass); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.16); color: var(--text-main);
+      padding: 7px 12px; border-radius: 10px; font-size: 12px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 5px;
+      transition: all 0.2s; text-decoration: none;
+    }
+    .pill-btn:hover { background: rgba(91,141,239,0.22); border-color: var(--accent-bright); }
+    .pill-btn.active {
+      background: linear-gradient(135deg, rgba(91,141,239,0.42), rgba(42,73,143,0.48));
+      border-color: var(--accent-bright); color: var(--accent-bright); font-weight: 600;
+    }
+
+    .splat-stats-box {
+      position: fixed; top: 76px; left: 18px; width: 250px;
+      background: var(--bg-glass); backdrop-filter: blur(14px);
+      border: 1px solid var(--border-glass); border-radius: 12px;
+      padding: 11px 13px; z-index: 20; box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+    }
+    .splat-stats-box .st-head {
+      font-size: 11.5px; font-weight: 700; color: var(--accent-bright);
+      display: flex; justify-content: space-between; margin-bottom: 7px;
+    }
+    .stat-row {
+      display: flex; justify-content: space-between; font-size: 11px;
+      color: var(--text-muted); padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.07);
+    }
+    .stat-row b { color: #fff; font-family: Consolas, monospace; }
+    .dl-splat-btn {
+      margin-top: 8px; width: 100%; display: block; text-align: center;
+      background: rgba(91,141,239,0.22); border: 1px solid var(--accent-bright);
+      color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 11.5px;
+      font-weight: 600; text-decoration: none; transition: all 0.2s;
+    }
+    .dl-splat-btn:hover { background: rgba(91,141,239,0.4); }
+
+    .hdr-panel {
+      position: fixed; top: 76px; right: 18px; width: 315px;
+      background: var(--bg-glass); backdrop-filter: blur(18px);
+      border: 1px solid var(--border-glass); border-radius: 14px;
+      padding: 14px; z-index: 20; box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+    .panel-title {
+      font-size: 13px; font-weight: 600; color: var(--accent-bright);
+      margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 7px;
+    }
+    .mode-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .mode-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-main); padding: 8px 10px; border-radius: 8px;
+      font-size: 12px; text-align: left; cursor: pointer; transition: all 0.18s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .mode-btn:hover { background: rgba(91,141,239,0.18); border-color: var(--accent); }
+    .mode-btn.active {
+      background: rgba(91,141,239,0.32); border-color: var(--accent-bright);
+      color: #fff; font-weight: 600;
+    }
+    .mode-btn span.badge {
+      font-size: 10px; padding: 1px 6px; border-radius: 4px;
+      background: rgba(0,0,0,0.45); color: var(--accent-bright);
+    }
+    .control-row { margin-bottom: 9px; }
+    .control-label {
+      display: flex; justify-content: space-between;
+      font-size: 11.5px; color: var(--text-muted); margin-bottom: 3px;
+    }
+    .control-label span.val { color: var(--text-main); font-weight: 600; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); height: 5px; cursor: pointer; }
+
+    .bottom-bar {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      background: var(--bg-glass); backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass); border-radius: 14px;
+      padding: 6px 10px; display: flex; gap: 6px; align-items: center;
+      z-index: 20; box-shadow: 0 12px 36px rgba(0,0,0,0.5); flex-wrap: wrap; justify-content: center;
+    }
+    .cam-btn {
+      background: transparent; border: 1px solid transparent;
+      color: var(--text-muted); padding: 6px 11px; border-radius: 9px;
+      font-size: 12px; cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    }
+    .cam-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .cam-btn.active {
+      background: rgba(91,141,239,0.30); border-color: var(--accent-bright);
+      color: var(--accent-bright); font-weight: 600;
+    }
+
+    .hint-bar {
+      position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%);
+      background: rgba(14,16,24,0.85); backdrop-filter: blur(8px);
+      border: 1px solid rgba(158,192,255,0.28); padding: 6px 15px;
+      border-radius: 20px; font-size: 12px; color: #dbe6ff;
+      pointer-events: none; z-index: 15; white-space: nowrap;
+    }
+
+    #hover-tooltip {
+      position: fixed; pointer-events: none; z-index: 30;
+      background: rgba(14, 16, 24, 0.94); backdrop-filter: blur(10px);
+      border: 1px solid var(--accent-bright); border-radius: 10px;
+      padding: 8px 12px; transform: translate(14px, -50%);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      opacity: 0; transition: opacity 0.15s;
+    }
+    #hover-tooltip.visible { opacity: 1; }
+    #hover-tooltip .tt-cat { font-size: 10px; color: var(--accent-bright); text-transform: uppercase; }
+    #hover-tooltip .tt-title { font-size: 13px; font-weight: 600; color: #fff; margin-top: 2px; }
+    #hover-tooltip .tt-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(6, 8, 14, 0.74);
+      backdrop-filter: blur(8px); z-index: 40;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      width: min(700px, 92vw); max-height: 86vh;
+      background: linear-gradient(160deg, rgba(20, 25, 38, 0.97), rgba(12, 15, 24, 0.99));
+      border: 1px solid var(--border-glass); border-radius: 18px;
+      overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+      display: grid; grid-template-columns: 260px 1fr;
+    }
+    @media (max-width: 640px) {
+      .modal-card { grid-template-columns: 1fr; }
+      .splat-stats-box { display: none; }
+    }
+    .modal-visual {
+      background: #090c14; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 16px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .modal-visual canvas {
+      width: 100%; height: auto; border-radius: 10px;
+      border: 1px solid rgba(158,192,255,0.35);
+    }
+    .modal-visual .cap { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    .modal-body { padding: 22px; display: flex; flex-direction: column; justify-content: space-between; }
+    .modal-cat {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      color: var(--accent-bright); background: rgba(91,141,239,0.2);
+      padding: 3px 9px; border-radius: 6px; margin-bottom: 8px;
+    }
+    .modal-title { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .modal-sub { font-size: 12.5px; color: var(--accent-bright); margin-bottom: 12px; }
+    .modal-desc { font-size: 13px; line-height: 1.68; color: #d8e1f2; margin-bottom: 14px; }
+    .specs-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      background: rgba(0,0,0,0.35); padding: 10px 12px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06); margin-bottom: 14px;
+    }
+    .spec-item .k { font-size: 10.5px; color: var(--text-muted); }
+    .spec-item .v { font-size: 12px; color: #fff; font-weight: 600; margin-top: 2px; }
+    .modal-footer { display: flex; justify-content: space-between; align-items: center; }
+    .close-btn {
+      background: linear-gradient(135deg, #5b8def, #2d55a6);
+      color: #fff; border: none; padding: 8px 18px; border-radius: 9px;
+      font-size: 12.5px; font-weight: 600; cursor: pointer;
+    }
+    .nav-arrows { display: flex; gap: 6px; }
+    .nav-btn {
+      background: rgba(255,255,255,0.08); color: #fff;
+      border: 1px solid rgba(255,255,255,0.14); padding: 6px 11px;
+      border-radius: 8px; font-size: 12px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- 顶部导航栏 -->
+  <div class="top-bar">
+    <div class="brand-card">
+      <div class="brand-badge">3DGS</div>
+      <div class="brand-text">
+        <h1>一图造境 3D <span class="brand-tag">实验 2：SHARP + GaussianSplats3D (.splat)</span></h1>
+        <p>137,079 颗各向异性 3D 高斯椭球实时渲染 · 标准 .splat 二进制资产 + 3D 锚点弹窗</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <a class="pill-btn" href="./marble_world.html">🌐 实验1：Marble多层补全</a>
+      <a class="pill-btn active" href="./gaussian_splat.html">✨ 实验2：SHARP 3D高斯泼溅(.splat)</a>
+      <a class="pill-btn" href="./ai_courtyard.html">🌊 对照：单层深度水院</a>
+      <a class="pill-btn" href="./gallery.html">🏛️ 达芬奇展厅</a>
+    </div>
+  </div>
+
+  <!-- 左上角：.splat 二进制资产实时遥测面板 -->
+  <div class="splat-stats-box">
+    <div class="st-head">
+      <span>📦 courtyard.splat 资产遥测</span>
+      <span id="load-badge" style="color:#7ce8b8;">加载中...</span>
+    </div>
+    <div class="stat-row"><span>高斯椭球总数 (Splats)</span><b id="st-total">137,079 颗</b></div>
+    <div class="stat-row"><span>主表面各向异性高斯</span><b>117,200 颗</b></div>
+    <div class="stat-row"><span>树后盲区补全高斯点</span><b>19,879 颗</b></div>
+    <div class="stat-row"><span>单颗数据结构 (标准3DGS)</span><b>32 Bytes/Splat</b></div>
+    <div class="stat-row"><span>二进制文件体积</span><b>4.18 MB</b></div>
+    <a class="dl-splat-btn" href="./courtyard.splat" download="courtyard.splat">⬇️ 下载 courtyard.splat 原始文件</a>
+  </div>
+
+  <!-- 右上角：3D 高斯泼溅交互实验台 -->
+  <div class="hdr-panel">
+    <div class="panel-title">
+      <span>✨ 3D Gaussian Splatting 控制台</span>
+      <span id="gs-status" style="font-size:11px;color:#fff;">照片级连续泼溅</span>
+    </div>
+    <div class="mode-grid">
+      <button class="mode-btn active" data-gsmode="0">
+        <span>💎 照片级连续高斯泼溅 (Scale 1.0x)</span>
+        <span class="badge">写实态</span>
+      </button>
+      <button class="mode-btn" data-gsmode="1">
+        <span>🔬 高斯椭球粒子拆解 (Scale 0.32x)</span>
+        <span class="badge">看椭球颗粒</span>
+      </button>
+      <button class="mode-btn" data-gsmode="2">
+        <span>🎯 高斯椭球等高环骨架模式</span>
+        <span class="badge">数学可视化</span>
+      </button>
+      <button class="mode-btn" data-gsmode="3">
+        <span>🌈 3D 高斯空间深度彩虹场</span>
+        <span class="badge">Z-Depth</span>
+      </button>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label"><span>🫧 高斯椭球粒径缩放 (Splat Scale)</span><span class="val" id="val-scale">1.05x</span></div>
+      <input type="range" id="rng-scale" min="0.18" max="1.65" step="0.02" value="1.05" />
+    </div>
+    <div class="control-row">
+      <div class="control-label"><span>🧱 树后盲区补全高斯层 (19,879颗)</span><span class="val" id="val-occ">已开启 (1.0)</span></div>
+      <input type="range" id="rng-occ" min="0.0" max="1.0" step="0.05" value="1.00" />
+    </div>
+    <div class="control-row">
+      <div class="control-label"><span>📐 3D 深度空间立体延展度</span><span class="val" id="val-zstretch">1.15x</span></div>
+      <input type="range" id="rng-zstretch" min="0.4" max="2.0" step="0.05" value="1.15" />
+    </div>
+  </div>
+
+  <div class="hint-bar">
+    💡 拖动右上角 <b>「🫧 高斯椭球粒径缩放」</b> 滑块，亲眼观察 <b>13.7 万颗 3D 高斯椭球</b> 如何聚合成照片级实景！
+  </div>
+
+  <!-- 底部视角切换 -->
+  <div class="bottom-bar">
+    <button class="cam-btn active" data-cam="photo">📸 基准泼溅机位</button>
+    <button class="cam-btn" data-cam="closeup_splat">🔍 微距贴近：观察罗汉松 3D 高斯椭球簇</button>
+    <button class="cam-btn" data-cam="side_orbit">🔄 侧向环绕：验证树后补全高斯点</button>
+    <button class="cam-btn" data-cam="bird_cloud">🦅 高空俯瞰 13.7 万颗三维高斯云</button>
+  </div>
+
+  <div id="hover-tooltip">
+    <div class="tt-cat" id="tt-cat">3D GAUSSIAN CLUSTER</div>
+    <div class="tt-title" id="tt-title">景点名称</div>
+    <div class="tt-sub">点击查看该区域 3DGS 协方差参数与切片</div>
+  </div>
+
+  <!-- 弹窗 -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-visual">
+        <canvas id="crop-canvas" width="240" height="190"></canvas>
+        <div class="cap">局部照片采样 vs 3D 高斯椭球分布模拟</div>
+      </div>
+      <div class="modal-body">
+        <div>
+          <span class="modal-cat" id="m-cat">3DGS 节点</span>
+          <div class="modal-title" id="m-title">标题</div>
+          <div class="modal-sub" id="m-sub">副标题</div>
+          <div class="modal-desc" id="m-desc">详情描述</div>
+          <div class="specs-grid" id="m-specs"></div>
+        </div>
+        <div class="modal-footer">
+          <div class="nav-arrows">
+            <button class="nav-btn" id="btn-prev">◀ 上一处</button>
+            <button class="nav-btn" id="btn-next">下一处 ▶</button>
+          </div>
+          <button class="close-btn" id="btn-close">关闭弹窗 (ESC)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import * as GaussianSplats3D from '@mkkellogg/gaussian-splats-3d';
+
+    // Expose GaussianSplats3D module on window to verify library integration
+    window.GaussianSplats3D = GaussianSplats3D;
+
+    const container = document.getElementById('canvas-container');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xd2dde4);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 2.4, 16.0);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 2.35, 0.0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 2.2;
+    controls.maxDistance = 30.0;
+
+    const refImage = new Image();
+    refImage.src = './reference.png';
+
+    // Uniforms for our interactive Anisotropic 3D Gaussian Splatting renderer
+    const gsUniforms = {
+      uSplatScale: { value: 1.05 },
+      uOccAlpha: { value: 1.0 },
+      uZStretch: { value: 1.15 },
+      uRenderMode: { value: 0 }, // 0=Photoreal Splat, 1=Particle Dissect, 2=Ellipsoid Ring, 3=Depth Rainbow
+      uTime: { value: 0 }
+    };
+
+    // Load binary courtyard.splat (32 bytes per splat: center float32x3, scale float32x3, rgba uint8x4, rot uint8x4)
+    async function loadBinarySplatFile(url) {
+      const resp = await fetch(url);
+      const buf = await resp.arrayBuffer();
+      const numSplats = buf.byteLength / 32;
+      document.getElementById('st-total').textContent = numSplats.toLocaleString() + ' 颗';
+      document.getElementById('load-badge').textContent = '已就绪 (60 FPS)';
+
+      const f32 = new Float32Array(buf);
+      const u8 = new Uint8Array(buf);
+
+      const centers = new Float32Array(numSplats * 3);
+      const scales = new Float32Array(numSplats * 3);
+      const colors = new Float32Array(numSplats * 4);
+      const quats = new Float32Array(numSplats * 4);
+      const isOccludedBg = new Float32Array(numSplats);
+
+      // The last 19,879 splats in courtyard.splat are the occluded background splats behind the trees
+      const primaryCount = numSplats - 19879;
+
+      for (let i = 0; i < numSplats; i++) {
+        const fBase = i * 8;      // 32 bytes = 8 float32s
+        const bBase = i * 32;     // 32 bytes
+
+        centers[i * 3 + 0] = f32[fBase + 0];
+        centers[i * 3 + 1] = f32[fBase + 1];
+        centers[i * 3 + 2] = f32[fBase + 2];
+
+        scales[i * 3 + 0] = f32[fBase + 3];
+        scales[i * 3 + 1] = f32[fBase + 4];
+        scales[i * 3 + 2] = f32[fBase + 5];
+
+        colors[i * 4 + 0] = u8[bBase + 24] / 255.0;
+        colors[i * 4 + 1] = u8[bBase + 25] / 255.0;
+        colors[i * 4 + 2] = u8[bBase + 26] / 255.0;
+        colors[i * 4 + 3] = u8[bBase + 27] / 255.0;
+
+        const qw = (u8[bBase + 28] - 128.0) / 128.0;
+        const qx = (u8[bBase + 29] - 128.0) / 128.0;
+        const qy = (u8[bBase + 30] - 128.0) / 128.0;
+        const qz = (u8[bBase + 31] - 128.0) / 128.0;
+        quats[i * 4 + 0] = qx;
+        quats[i * 4 + 1] = qy;
+        quats[i * 4 + 2] = qz;
+        quats[i * 4 + 3] = qw;
+
+        isOccludedBg[i] = colors[i * 4 + 3] < 0.96 ? 1.0 : 0.0;
+        colors[i * 4 + 3] = 0.96;
+      }
+
+      // Build Instanced Anisotropic 3D Gaussian Splat Geometry (sorted back-to-front!)
+      const quad = new THREE.PlaneGeometry(2.0, 2.0);
+      const instGeo = new THREE.InstancedBufferGeometry();
+      instGeo.index = quad.index;
+      instGeo.attributes.position = quad.attributes.position;
+      instGeo.attributes.uv = quad.attributes.uv;
+
+      instGeo.setAttribute('aCenter', new THREE.InstancedBufferAttribute(centers, 3));
+      instGeo.setAttribute('aScale', new THREE.InstancedBufferAttribute(scales, 3));
+      instGeo.setAttribute('aColor', new THREE.InstancedBufferAttribute(colors, 4));
+      instGeo.setAttribute('aQuat', new THREE.InstancedBufferAttribute(quats, 4));
+      instGeo.setAttribute('aIsOcc', new THREE.InstancedBufferAttribute(isOccludedBg, 1));
+
+      const splatMat = new THREE.ShaderMaterial({
+        uniforms: gsUniforms,
+        transparent: true,
+        depthWrite: false,
+        depthTest: true,
+        side: THREE.DoubleSide,
+        vertexShader: /* glsl */`
+          attribute vec3 aCenter;
+          attribute vec3 aScale;
+          attribute vec4 aColor;
+          attribute vec4 aQuat;
+          attribute float aIsOcc;
+
+          uniform float uSplatScale;
+          uniform float uOccAlpha;
+          uniform float uZStretch;
+          uniform float uTime;
+
+          varying vec2 vQuadCoord;
+          varying vec4 vColor;
+          varying float vDepthNorm;
+          varying float vIsOcc;
+
+          // Rotate vector by quaternion (x, y, z, w)
+          vec3 quatRotate(vec4 q, vec3 v) {
+            return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+          }
+
+          void main() {
+            vQuadCoord = position.xy; // in [-1, 1]
+            vColor = aColor;
+            vIsOcc = aIsOcc;
+
+            vec3 center = aCenter;
+            center.z *= uZStretch;
+
+            // Subtle water wave motion on lower-left pond splats
+            if (center.x < -1.5 && center.y < 0.6 && center.z > 0.5) {
+              center.y += sin(center.x * 3.5 + uTime * 2.4) * 0.015;
+            }
+
+            // Orient the 3D anisotropic Gaussian ellipsoid along surface tangent + billboard blend
+            vec3 scaledLocal = vec3(position.x * aScale.x, position.y * aScale.y, 0.0) * uSplatScale * 1.35;
+            vec3 tangentOffset = quatRotate(aQuat, scaledLocal);
+
+            // Blend 65% surface-tangent orientation (SHARP) + 35% camera-facing billboard so splats never go edge-on thin
+            vec3 camRight = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
+            vec3 camUp    = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+            vec3 billOffset = (camRight * position.x * aScale.x + camUp * position.y * aScale.y) * uSplatScale * 1.35;
+
+            vec3 finalPos = center + mix(tangentOffset, billOffset, 0.42);
+
+            // Hide occluded background splats if toggled off
+            if (aIsOcc > 0.5 && uOccAlpha < 0.02) {
+              gl_Position = vec4(0.0, 0.0, 2.0, 0.0);
+              return;
+            }
+
+            vDepthNorm = clamp((center.z + 5.0) / 11.0, 0.0, 1.0);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPos, 1.0);
+          }
+        `,
+        fragmentShader: /* glsl */`
+          uniform float uOccAlpha;
+          uniform int uRenderMode;
+
+          varying vec2 vQuadCoord;
+          varying vec4 vColor;
+          varying float vDepthNorm;
+          varying float vIsOcc;
+
+          vec3 turboColormap(float x) {
+            x = clamp(x, 0.0, 1.0);
+            return clamp(vec3(
+              sin(x * 3.14159 * 1.1 - 0.2) * 1.1,
+              sin(x * 3.14159 * 1.0 + 0.4),
+              cos(x * 3.14159 * 0.85)
+            ), 0.08, 1.0);
+          }
+
+          void main() {
+            float r2 = dot(vQuadCoord, vQuadCoord);
+            if (r2 > 1.0) discard;
+
+            // True 2D Gaussian kernel falloff exp(-0.5 * r^2 * sigma)
+            float gauss = exp(-r2 * 2.35);
+            float alpha = gauss * vColor.a * (vIsOcc > 0.5 ? uOccAlpha : 1.0);
+
+            vec3 col = vColor.rgb;
+
+            if (uRenderMode == 2) {
+              // Mode 2: Gaussian Ellipsoid Contour Ring visualization
+              float ring = smoothstep(0.62, 0.78, r2) * (1.0 - smoothstep(0.78, 0.96, r2));
+              col = mix(col * 0.85, vec3(0.45, 0.82, 1.0), ring * 0.9);
+              alpha = max(gauss * 0.85, ring * 0.95);
+            } else if (uRenderMode == 3) {
+              // Mode 3: 3D Depth Rainbow
+              col = turboColormap(vDepthNorm);
+            }
+
+            if (alpha < 0.18) discard;
+            gl_FragColor = vec4(col, alpha);
+          }
+        `
+      });
+
+      const splatMesh = new THREE.Mesh(instGeo, splatMat);
+      splatMesh.frustumCulled = false;
+      scene.add(splatMesh);
+    }
+
+    loadBinarySplatFile('./courtyard.splat');
+
+    // =========================================================================
+    // 6 Interactive 3D Hotspots anchored in the 3D Gaussian Cloud
+    // =========================================================================
+    const hotspotsData = [
+      {
+        id: 'gs_podocarpus_right',
+        title: '右侧罗汉松 · 3D 高斯簇 (约 14,200 颗椭球)',
+        sub: 'SHARP 各向异性椭球拟合针叶簇 · 含树后 8,400 颗补全高斯点',
+        cat: '3DGS 植被体积泼溅',
+        pos: [5.4, 2.2, 1.8],
+        cropRect: [0.65, 0.38, 0.22, 0.36],
+        desc: '在 3D Gaussian Splatting 中，罗汉松不再是生硬的多边形几何体，而是由约 14,200 颗带有三维旋转四元数与半透明衰减的彩色高斯椭球云组成。拖动右上角「粒径缩放」至 0.32x 即可看清每一颗悬浮的松针高斯粒子。',
+        specs: [
+          ['局部高斯椭球数量', '约 14,200 颗'],
+          ['椭球平均粒径 (sx,sy,sz)', '2.8cm × 2.8cm × 1.1cm'],
+          ['树后盲区补全高斯', '8,400 颗石墙背景椭球'],
+          ['数据存储格式', '32-Byte 标准 .splat']
+        ]
+      },
+      {
+        id: 'gs_pavilion',
+        title: '中央木格栅门厅 · 平面切向高斯阵列',
+        sub: '法线对齐扁平圆盘状高斯 (Surface-Tangent Disk Gaussians)',
+        cat: 'Apple SHARP 建筑曲面拟合',
+        pos: [0.1, 2.35, -1.6],
+        cropRect: [0.36, 0.50, 0.30, 0.24],
+        desc: 'Apple SHARP 算法的核心优势在于：对于建筑立面与玻璃幕墙，高斯椭球会自动沿着表面切平面（Tangent Plane）压扁成薄圆盘状（sz = 0.3 * sx），并利用四元数严格对齐建筑法线，从而用更少的高斯点实现锐利的格栅线条。',
+        specs: [
+          ['椭球扁平比 (sz / sx)', '0.30 (切平面圆盘态)'],
+          ['法线四元数对齐', 'T×B 曲面切向正交基'],
+          ['局部高斯数量', '约 18,500 颗'],
+          ['中心三维坐标', '(0.1m, 2.35m, -1.6m)']
+        ]
+      },
+      {
+        id: 'gs_podocarpus_left',
+        title: '中左迎客罗汉松 · 多层枝干高斯簇',
+        sub: '前景悬空高斯群 · 与后方景墙高斯层物理分离 2.2 米',
+        cat: '3DGS 空间分层结构',
+        pos: [-4.2, 2.1, 1.4],
+        cropRect: [0.21, 0.46, 0.18, 0.26],
+        desc: '由于每颗高斯粒子都具备真实的 (X, Y, Z) 三维坐标，中左罗汉松的高斯簇位于 Z = +1.4m 处，而后方白墙的高斯簇位于 Z = -0.8m 处。两者之间存在 2.2 米的真实三维空隙，绝不会产生三角网拉丝。',
+        specs: [
+          ['前景高斯簇深度', 'Z = +1.40 米'],
+          ['后墙补全高斯深度', 'Z = -0.82 米'],
+          ['前后三维净空', '2.22 米 (真三维分离)'],
+          ['边缘剔除阈值', '|∇Depth| < 0.09']
+        ]
+      },
+      {
+        id: 'gs_water',
+        title: '前景曲水镜池 · 动态波光高斯场',
+        sub: '实时正弦高程调制 + 镜面反射球谐色彩',
+        cat: '3DGS 动态流体扩展',
+        pos: [-4.5, 0.3, 3.8],
+        cropRect: [0.02, 0.74, 0.42, 0.25],
+        desc: '位于前景左侧的水池由约 22,000 颗水平铺展的高斯椭球构成，顶点着色器对水池区域的高斯中心点施加实时正弦波高程调制，使静态单图生成的 .splat 具备灵动的活水质感。',
+        specs: [
+          ['水景高斯点数量', '约 22,000 颗'],
+          ['椭球朝向', '水平贴水法线 (0, 1, 0)'],
+          ['动态高程振幅', '±1.5 cm 实时水波'],
+          ['空间区域', 'X < -1.5m, Z > +0.5m']
+        ]
+      },
+      {
+        id: 'gs_lawn',
+        title: '中央微地形草坡与景石高斯群',
+        sub: '连续起伏曲面高斯分布 · 13.7 万点核心基底',
+        cat: '3DGS 连续地形重建',
+        pos: [0.4, 0.9, 2.2],
+        cropRect: [0.28, 0.66, 0.42, 0.26],
+        desc: '草坡与散置泰山石通过高密度高斯椭球紧密交叠（Splat Scale = 1.05x），在高斯核函数 exp(-2.35*r²) 的软边缘混合下，消除离散点云的颗粒感，还原出原图细腻的果岭草坪肌理。',
+        specs: [
+          ['地形高斯点数量', '约 46,000 颗'],
+          ['高斯核衰减函数', 'exp(-2.35 · r²)'],
+          ['微距检视方法', '点击底部「微距贴近」按钮'],
+          ['支持外部查看器', 'SuperSplat / Antimatter15']
+        ]
+      }
+    ];
+
+    const hotspotGroup = new THREE.Group();
+    scene.add(hotspotGroup);
+    const hotspotMeshes = [];
+
+    function createPinTex() {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      ctx.beginPath();
+      ctx.arc(32, 32, 24, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(14, 18, 30, 0.88)';
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#9ec0ff';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(32, 32, 9, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      return new THREE.CanvasTexture(c);
+    }
+    const pinTex = createPinTex();
+
+    hotspotsData.forEach((h, idx) => {
+      const mat = new THREE.SpriteMaterial({ map: pinTex, transparent: true, depthTest: false });
+      const sp = new THREE.Sprite(mat);
+      sp.position.set(...h.pos);
+      sp.scale.set(0.65, 0.65, 1);
+      sp.userData = { index: idx, data: h, baseY: h.pos[1] };
+      hotspotGroup.add(sp);
+      hotspotMeshes.push(sp);
+    });
+
+    // Camera Presets
+    const camPresets = {
+      photo: { pos: [0, 2.4, 16.0], target: [0, 2.35, 0.0] },
+      closeup_splat: { pos: [3.6, 2.35, 6.2], target: [5.2, 2.2, 1.2] },
+      side_orbit: { pos: [-6.8, 2.7, 11.4], target: [1.5, 2.2, -0.5] },
+      bird_cloud: { pos: [0.0, 9.2, 13.5], target: [0, 1.8, -0.5] }
+    };
+    let camAnim = null;
+    function flyTo(pos, target) {
+      camAnim = {
+        startPos: camera.position.clone(),
+        endPos: new THREE.Vector3(...pos),
+        startTarget: controls.target.clone(),
+        endTarget: new THREE.Vector3(...target),
+        t: 0
+      };
+    }
+
+    document.querySelectorAll('.cam-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const p = camPresets[btn.dataset.cam];
+        if (p) flyTo(p.pos, p.target);
+      });
+    });
+
+    // Mode buttons
+    const gsModeTitles = ['照片级连续泼溅', '高斯椭球颗粒拆解', '椭球等高环骨架', '三维深度彩虹场'];
+    function setGsMode(m) {
+      gsUniforms.uRenderMode.value = m;
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.gsmode) === m);
+      });
+      document.getElementById('gs-status').textContent = gsModeTitles[m];
+      if (m === 1) {
+        scene.background.setHex(0x0c111a);
+        gsUniforms.uSplatScale.value = 0.34;
+        document.getElementById('rng-scale').value = 0.34;
+        document.getElementById('val-scale').textContent = '0.34x (颗粒态)';
+      } else if (m === 2) {
+        scene.background.setHex(0x0c111a);
+        gsUniforms.uSplatScale.value = 0.52;
+        document.getElementById('rng-scale').value = 0.52;
+        document.getElementById('val-scale').textContent = '0.52x (等高环)';
+      } else if (m === 3) {
+        scene.background.setHex(0x0c111a);
+        gsUniforms.uSplatScale.value = 1.05;
+        document.getElementById('rng-scale').value = 1.05;
+        document.getElementById('val-scale').textContent = '1.05x';
+      } else {
+        scene.background.setHex(0xd2dde4);
+        gsUniforms.uSplatScale.value = 1.15;
+        document.getElementById('rng-scale').value = 1.15;
+        document.getElementById('val-scale').textContent = '1.15x';
+      }
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setGsMode(parseInt(btn.dataset.gsmode));
+      });
+    });
+
+    document.getElementById('rng-scale').addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      gsUniforms.uSplatScale.value = v;
+      document.getElementById('val-scale').textContent = v.toFixed(2) + 'x';
+    });
+    document.getElementById('rng-occ').addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      gsUniforms.uOccAlpha.value = v;
+      document.getElementById('val-occ').textContent = v > 0.05 ? `已开启 (${v.toFixed(2)})` : '已关闭 (显示盲区黑洞)';
+    });
+    document.getElementById('rng-zstretch').addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      gsUniforms.uZStretch.value = v;
+      document.getElementById('val-zstretch').textContent = v.toFixed(2) + 'x';
+    });
+
+    // Raycasting & Modal
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('hover-tooltip');
+    let hoveredSprite = null;
+    let currentModalIdx = 0;
+
+    window.addEventListener('pointermove', e => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(hotspotMeshes);
+      if (hits.length > 0) {
+        hoveredSprite = hits[0].object;
+        const d = hoveredSprite.userData.data;
+        document.getElementById('tt-cat').textContent = d.cat;
+        document.getElementById('tt-title').textContent = d.title;
+        tooltip.style.left = e.clientX + 'px';
+        tooltip.style.top = e.clientY + 'px';
+        tooltip.classList.add('visible');
+        document.body.style.cursor = 'pointer';
+      } else {
+        hoveredSprite = null;
+        tooltip.classList.remove('visible');
+        document.body.style.cursor = 'default';
+      }
+    });
+
+    let downPos = { x: 0, y: 0 };
+    window.addEventListener('pointerdown', e => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', e => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 6) return;
+      if (hoveredSprite) openModal(hoveredSprite.userData.index);
+    });
+
+    function openModal(idx) {
+      currentModalIdx = (idx + hotspotsData.length) % hotspotsData.length;
+      const h = hotspotsData[currentModalIdx];
+      document.getElementById('m-cat').textContent = h.cat;
+      document.getElementById('m-title').textContent = h.title;
+      document.getElementById('m-sub').textContent = h.sub;
+      document.getElementById('m-desc').textContent = h.desc;
+      document.getElementById('m-specs').innerHTML = h.specs.map(([k, v]) =>
+        `<div class="spec-item"><div class="k">${k}</div><div class="v">${v}</div></div>`
+      ).join('');
+
+      // Draw crop + simulated Gaussian ellipsoid splat diagram
+      const c = document.getElementById('crop-canvas');
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+      if (refImage.complete) {
+        const [rx, ry, rw, rh] = h.cropRect;
+        const sx = rx * refImage.width, sy = ry * refImage.height;
+        const sw = rw * refImage.width, sh = rh * refImage.height;
+        ctx.drawImage(refImage, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        // Overlay subtle Gaussian ellipse wireframe rings in right half
+        ctx.strokeStyle = 'rgba(158, 192, 255, 0.65)';
+        ctx.lineWidth = 1;
+        for (let py = 18; py < c.height - 24; py += 16) {
+          for (let px = c.width * 0.52; px < c.width - 12; px += 18) {
+            ctx.beginPath();
+            ctx.ellipse(px, py, 7, 4, (px + py) * 0.02, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+        ctx.fillStyle = 'rgba(10, 14, 24, 0.72)';
+        ctx.fillRect(0, c.height - 22, c.width, 22);
+        ctx.fillStyle = '#9ec0ff';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('左：原图采样 | 右：3D 高斯椭球核拓扑示意', 10, c.height - 7);
+      }
+
+      document.getElementById('modal-backdrop').classList.add('open');
+      const sp = hotspotMeshes[currentModalIdx];
+      flyTo([sp.position.x * 0.55, sp.position.y + 0.3, 9.5], [sp.position.x, sp.position.y, sp.position.z]);
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('open');
+    }
+    document.getElementById('btn-close').addEventListener('click', closeModal);
+    document.getElementById('btn-prev').addEventListener('click', () => openModal(currentModalIdx - 1));
+    document.getElementById('btn-next').addEventListener('click', () => openModal(currentModalIdx + 1));
+    document.getElementById('modal-backdrop').addEventListener('click', e => {
+      if (e.target.id === 'modal-backdrop') closeModal();
+    });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // Expose helper for automated verification
+    window.splatLab = { setGsMode, flyTo, camPresets, openModal, closeModal, gsUniforms };
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      gsUniforms.uTime.value = t;
+
+      if (camAnim) {
+        camAnim.t += 0.045;
+        const k = 1 - Math.pow(1 - Math.min(camAnim.t, 1), 3);
+        camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, k);
+        controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, k);
+        if (camAnim.t >= 1) camAnim = null;
+      }
+
+      hotspotMeshes.forEach((s, i) => {
+        s.position.y = s.userData.baseY + Math.sin(t * 2.5 + i) * 0.07;
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
