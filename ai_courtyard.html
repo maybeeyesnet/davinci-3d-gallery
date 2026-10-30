@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 深度神经重建 · 新中式禅意水院 (照片级 3D 视差与实时 Shader 交互)</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/controls/OrbitControls.js": "./vendor/OrbitControls.js"
+    }
+  }
+  </script>
+  <style>
+    :root {
+      --bg-glass: rgba(14, 19, 17, 0.80);
+      --border-glass: rgba(212, 185, 132, 0.28);
+      --accent: #c9a769;
+      --accent-bright: #f0d59c;
+      --text-main: #f4f6f4;
+      --text-muted: #aeb8b2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #101614;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+    }
+    #canvas-container { width: 100%; height: 100%; position: relative; }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    .top-bar {
+      position: fixed; top: 16px; left: 20px; right: 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none; z-index: 20;
+    }
+    .brand-card {
+      pointer-events: auto; background: var(--bg-glass);
+      backdrop-filter: blur(16px); border: 1px solid var(--border-glass);
+      border-radius: 14px; padding: 11px 16px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: linear-gradient(135deg, #c9a769, #5f4720);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; color: #fff;
+    }
+    .brand-text h1 { font-size: 15px; font-weight: 600; color: #fff; }
+    .brand-text p { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .top-actions { pointer-events: auto; display: flex; gap: 8px; align-items: center; }
+    .pill-btn {
+      background: var(--bg-glass); backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass); color: var(--text-main);
+      padding: 8px 13px; border-radius: 10px; font-size: 12px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+      transition: all 0.2s; text-decoration: none;
+    }
+    .pill-btn:hover { background: rgba(201,167,105,0.24); border-color: var(--accent-bright); }
+    .pill-btn.active {
+      background: linear-gradient(135deg, rgba(201,167,105,0.36), rgba(95,71,32,0.36));
+      border-color: var(--accent-bright); color: var(--accent-bright);
+    }
+
+    .hdr-panel {
+      position: fixed; top: 80px; right: 20px; width: 285px;
+      background: var(--bg-glass); backdrop-filter: blur(18px);
+      border: 1px solid var(--border-glass); border-radius: 14px;
+      padding: 15px; z-index: 20; box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      transition: all 0.25s ease;
+    }
+    .hdr-panel.hidden { opacity: 0; pointer-events: none; transform: translateX(16px); }
+    .panel-title {
+      font-size: 13px; font-weight: 600; color: var(--accent-bright);
+      margin-bottom: 11px; display: flex; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 7px;
+    }
+    .control-row { margin-bottom: 10px; }
+    .control-label {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--text-muted); margin-bottom: 4px;
+    }
+    .control-label span.val { color: var(--text-main); font-weight: 500; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); height: 5px; cursor: pointer; }
+    select.hdr-select {
+      width: 100%; background: rgba(0,0,0,0.5); color: #fff;
+      border: 1px solid var(--border-glass); border-radius: 8px;
+      padding: 6px 10px; font-size: 12px; outline: none; cursor: pointer;
+    }
+
+    .bottom-bar {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--bg-glass); backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass); border-radius: 14px;
+      padding: 7px 10px; display: flex; gap: 6px; align-items: center;
+      z-index: 20; box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    }
+    .cam-btn {
+      background: transparent; border: 1px solid transparent;
+      color: var(--text-muted); padding: 7px 12px; border-radius: 9px;
+      font-size: 12.5px; cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    }
+    .cam-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .cam-btn.active {
+      background: rgba(201,167,105,0.28); border-color: var(--accent);
+      color: var(--accent-bright); font-weight: 600;
+    }
+    .hint-bar {
+      position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+      background: rgba(12,17,15,0.78); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.12); padding: 6px 15px;
+      border-radius: 20px; font-size: 12px; color: #d6e0d9;
+      pointer-events: none; z-index: 15; white-space: nowrap;
+    }
+
+    #hover-tooltip {
+      position: fixed; pointer-events: none; z-index: 30;
+      background: rgba(14,20,18,0.92); backdrop-filter: blur(10px);
+      border: 1px solid var(--accent); border-radius: 10px; padding: 8px 12px;
+      transform: translate(14px, -50%); opacity: 0; transition: opacity 0.12s;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5); max-width: 250px;
+    }
+    #hover-tooltip.visible { opacity: 1; }
+    #hover-tooltip .tt-tag { font-size: 10px; color: var(--accent-bright); font-weight: 600; }
+    #hover-tooltip .tt-title { font-size: 13.5px; font-weight: 600; color: #fff; margin-top: 2px; }
+    #hover-tooltip .tt-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(6,10,8,0.62);
+      backdrop-filter: blur(6px); z-index: 50;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s; padding: 20px;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      width: 100%; max-width: 760px; background: rgba(18,25,22,0.95);
+      border: 1px solid rgba(201,167,105,0.45); border-radius: 18px;
+      overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+      display: grid; grid-template-columns: 300px 1fr;
+    }
+    .modal-preview {
+      background: radial-gradient(circle at center, #223029 0%, #101613 100%);
+      padding: 18px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-preview canvas {
+      width: 100%; border-radius: 10px;
+      border: 1px solid rgba(201,167,105,0.35);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .modal-preview-caption { margin-top: 10px; font-size: 11.5px; color: var(--text-muted); text-align: center; }
+    .modal-body { padding: 24px 26px; display: flex; flex-direction: column; justify-content: space-between; }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .modal-category {
+      display: inline-block; padding: 3px 10px; border-radius: 6px;
+      background: rgba(201,167,105,0.18); border: 1px solid rgba(201,167,105,0.4);
+      color: var(--accent-bright); font-size: 11px; font-weight: 600; margin-bottom: 8px;
+    }
+    .modal-title { font-size: 20px; font-weight: 700; color: #fff; }
+    .modal-subtitle { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+    .modal-close {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; width: 32px; height: 32px; border-radius: 50%;
+      font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-specs {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+      margin: 14px 0; padding: 12px; background: rgba(255,255,255,0.04);
+      border-radius: 10px; border: 1px solid rgba(255,255,255,0.07);
+    }
+    .spec-item .spec-label { font-size: 11px; color: var(--text-muted); }
+    .spec-item .spec-val { font-size: 12.5px; color: #fff; font-weight: 500; margin-top: 2px; }
+    .modal-desc { font-size: 13.5px; line-height: 1.68; color: #d6e0d9; margin-bottom: 16px; }
+    .modal-actions {
+      display: flex; gap: 9px; flex-wrap: wrap;
+      border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;
+    }
+    .action-btn {
+      padding: 8px 14px; border-radius: 9px; font-size: 12.5px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border-glass);
+      background: rgba(255,255,255,0.08); color: #fff;
+    }
+    .action-btn.primary { background: linear-gradient(135deg, #c9a769, #7d5f2d); border-color: var(--accent-bright); }
+
+    @media (max-width: 760px) {
+      .top-bar { top: 10px; left: 10px; right: 10px; flex-direction: column; align-items: stretch; gap: 8px; }
+      .brand-card { padding: 8px 12px; }
+      .brand-text h1 { font-size: 13.5px; }
+      .brand-text p { font-size: 10.5px; }
+      .top-actions { overflow-x: auto; padding-bottom: 2px; }
+      .pill-btn { padding: 6px 10px; font-size: 11.5px; white-space: nowrap; }
+      .hdr-panel { top: 110px; right: 10px; width: 245px; padding: 12px; }
+      .bottom-bar { bottom: 12px; max-width: 95vw; overflow-x: auto; padding: 6px 8px; }
+      .hint-bar { bottom: 62px; font-size: 10.5px; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+      .modal-card { grid-template-columns: 1fr; max-height: 86vh; overflow-y: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div class="top-bar">
+    <div class="brand-card">
+      <div class="brand-badge">AI</div>
+      <div class="brand-text">
+        <h1>AI 深度神经重建 · 新中式禅意水院 (照片级实景交互版)</h1>
+        <p>15万面 AI 深度视差网格 · 实时 GLSL 动态水波/松风 · 100% 原图写实画质 + 3D 弹窗</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="pill-btn active" id="btn-toggle-hotspots"><span>✨ 3D 空间热点</span></button>
+      <button class="pill-btn" id="btn-toggle-depth"><span>🔍 AI 深度图检视</span></button>
+      <button class="pill-btn active" id="btn-toggle-hdr"><span>☀️ AI 光影与水波控制台</span></button>
+      <a class="pill-btn" href="./courtyard.html"><span>🧊 对比几何白模版</span></a>
+      <a class="pill-btn" href="./gallery.html"><span>🏛️ 达芬奇展厅</span></a>
+    </div>
+  </div>
+
+  <div class="hdr-panel" id="hdr-panel">
+    <div class="panel-title">
+      <span>🌅 AI 实景光影与 Shader 调节</span>
+      <span id="hdr-status-badge" style="font-size:11px; color:#8ce99a;">照片级实景已激活</span>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label"><span>AI 环境光影与时段重打光</span></div>
+      <select class="hdr-select" id="select-hdr-mode">
+        <option value="0">☀️ 晨曦实景原图模式 (99% 还原 + 动态水波)</option>
+        <option value="1">🌇 夕阳晚照金辉重打光 (Normal Relighting)</option>
+        <option value="2">🌙 庭院月夜华灯 (大堂暖光内透 + 萤火流光)</option>
+        <option value="3">🧠 AI 深度图与法线可视化 (Depth Map)</option>
+      </select>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>3D 深度立体浮雕视差强度</span>
+        <span class="val" id="val-depth-scale">3.20</span>
+      </div>
+      <input type="range" id="slider-depth-scale" min="0.0" max="5.5" step="0.1" value="3.20" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>太阳光照方位角 (法线动态受光)</span>
+        <span class="val" id="val-sun-angle">-42°</span>
+      </div>
+      <input type="range" id="slider-sun-angle" min="-90" max="90" step="2" value="-42" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>曲水镜池实时涟漪强度</span>
+        <span class="val" id="val-water-ripple">1.00</span>
+      </div>
+      <input type="range" id="slider-water-ripple" min="0" max="2.5" step="0.1" value="1.00" />
+    </div>
+
+    <div class="control-row" style="margin-bottom:0;">
+      <div class="control-label">
+        <span>镜头呼吸漫游幅度 (Auto Parallax)</span>
+        <span class="val" id="val-auto-sway">0.60</span>
+      </div>
+      <input type="range" id="slider-auto-sway" min="0" max="1.5" step="0.1" value="0.60" />
+    </div>
+  </div>
+
+  <div class="hint-bar">
+    💡 滑动鼠标/手指体验 <strong>照片级 3D 空间立体视差</strong> · 观察左下池水实时波光与松针微风 · <strong>点击任意建筑或景观热点</strong>弹出详解
+  </div>
+
+  <div class="bottom-bar">
+    <button class="cam-btn active" data-cam="photo">📷 原图全域机位</button>
+    <button class="cam-btn" data-cam="pavilion">🏛️ 聚焦：中央玻璃门厅</button>
+    <button class="cam-btn" data-cam="pond">🌊 聚焦：曲水池底弧纹</button>
+    <button class="cam-btn" data-cam="pine_right">🌲 聚焦：东侧造型罗汉松</button>
+    <button class="cam-btn" data-cam="mound_left">⛰️ 聚焦：西侧微地形景石</button>
+    <button class="cam-btn" data-cam="villa_left">🏯 聚焦：北翼新中式叠墅</button>
+  </div>
+
+  <div id="hover-tooltip">
+    <div class="tt-tag" id="tt-tag">AI 实景三维空间节点</div>
+    <div class="tt-title" id="tt-title">中央禅意迎宾玻璃门厅</div>
+    <div class="tt-sub" id="tt-sub">点击拉近 3D 实景镜头并查看原图局部高清解析</div>
+  </div>
+
+  <div class="modal-backdrop" id="exhibit-modal">
+    <div class="modal-card">
+      <div class="modal-preview">
+        <canvas id="modal-crop-canvas" width="360" height="270"></canvas>
+        <div class="modal-preview-caption" id="modal-caption">原图实景高清局部切片与深度层析</div>
+      </div>
+      <div class="modal-body">
+        <div>
+          <div class="modal-header">
+            <div>
+              <span class="modal-category" id="modal-category">主轴核心建筑 · 01</span>
+              <h2 class="modal-title" id="modal-title">中央禅意门厅与香槟铜格栅冠顶</h2>
+              <p class="modal-subtitle" id="modal-subtitle">水平舒展挑檐 · 超白玻幕墙 · 室内山水屏风内透</p>
+            </div>
+            <button class="modal-close" id="modal-close">×</button>
+          </div>
+
+          <div class="modal-specs">
+            <div class="spec-item">
+              <div class="spec-label">空间深度层级 (Z-Depth)</div>
+              <div class="spec-val" id="spec-id">中景核心层 (Depth: 0.30)</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">材料与表面质感</div>
+              <div class="spec-val" id="spec-material">香槟古铜竖向百叶 / 超白夹胶玻璃 / 荔枝面花岗岩</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">AI 视觉增强特效</div>
+              <div class="spec-val" id="spec-principle">室内暖光动态内透 + 法线立体受光</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">交互状态</div>
+              <div class="spec-val" id="spec-status" style="color: #8ce99a;">已绑定 3D 视差聚焦与原图切片</div>
+            </div>
+          </div>
+
+          <p class="modal-desc" id="modal-desc"></p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="action-btn primary" id="btn-modal-time"><span>🌇 切换晨曦/夕阳/月夜实景光影</span></button>
+          <button class="action-btn" id="btn-modal-voice"><span>🔊 语音导览播报</span></button>
+          <button class="action-btn" id="btn-modal-next"><span>➡️ 下一处实景节点</span></button>
+          <button class="action-btn" id="btn-modal-reset-cam"><span>📷 返回全域视角</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    const container = document.getElementById("canvas-container");
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xd5e0e6);
+
+    // 相机与轨道控制器（限制在舒适的实景 3D 视差漫游锥体内，防止穿帮）
+    const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 100);
+    const BASE_CAM_POS = new THREE.Vector3(0, 0, 14.2);
+    camera.position.copy(BASE_CAM_POS);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0, 0.5);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 5.5;
+    controls.maxDistance = 18.5;
+    controls.minAzimuthAngle = -0.32;
+    controls.maxAzimuthAngle = 0.32;
+    controls.minPolarAngle = Math.PI * 0.38;
+    controls.maxPolarAngle = Math.PI * 0.58;
+    controls.update();
+
+    // 加载原图、AI 深度图与 AI 特效遮罩图
+    const loader = new THREE.TextureLoader();
+    let refImageElement = null;
+
+    const colorTex = loader.load("./reference.png", (tex) => {
+      refImageElement = tex.image;
+    });
+    colorTex.colorSpace = THREE.SRGBColorSpace;
+    colorTex.minFilter = THREE.LinearFilter;
+    colorTex.magFilter = THREE.LinearFilter;
+
+    const depthTex = loader.load("./ai_depth.png");
+    depthTex.minFilter = THREE.LinearFilter;
+    depthTex.magFilter = THREE.LinearFilter;
+
+    const masksTex = loader.load("./ai_masks.png");
+    masksTex.minFilter = THREE.LinearFilter;
+    masksTex.magFilter = THREE.LinearFilter;
+
+    // 构建 384 x 192 (约14.7万三角面) 的高精度 AI 深度置换三维曲面网格
+    const PLANE_W = 19.68;
+    const PLANE_H = 9.0;
+    const geo = new THREE.PlaneGeometry(PLANE_W, PLANE_H, 384, 192);
+
+    const uniforms = {
+      uColorMap: { value: colorTex },
+      uDepthMap: { value: depthTex },
+      uMasksMap: { value: masksTex },
+      uTime: { value: 0 },
+      uDepthScale: { value: 3.2 },
+      uRippleStrength: { value: 1.0 },
+      uSunAngle: { value: -0.733 }, // -42 deg
+      uMode: { value: 0 }, // 0=Morning, 1=Sunset, 2=Night, 3=DepthView
+    };
+
+    const shaderMat = new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: `
+        uniform sampler2D uDepthMap;
+        uniform sampler2D uMasksMap;
+        uniform float uTime;
+        uniform float uDepthScale;
+        varying vec2 vUv;
+        varying float vDepth;
+
+        void main() {
+          vUv = uv;
+          float d = texture2D(uDepthMap, uv).r;
+          vec3 masks = texture2D(uMasksMap, uv).rgb; // R=water, G=lobby, B=foliage
+          vDepth = d;
+
+          vec3 pos = position;
+          // 将深度 (0=远景天空, 1=近景水岸) 映射为真实三维 Z 轴视差坐标
+          pos.z += (d - 0.35) * uDepthScale;
+
+          // 对松针与灌木枝叶 (masks.b) 施加轻柔的微风拂动动画
+          float wind = sin(uTime * 1.8 + pos.x * 1.4 + pos.y * 2.1) * 0.028 * masks.b * d;
+          pos.x += wind;
+          pos.y += wind * 0.4;
+
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uColorMap;
+        uniform sampler2D uDepthMap;
+        uniform sampler2D uMasksMap;
+        uniform float uTime;
+        uniform float uRippleStrength;
+        uniform float uSunAngle;
+        uniform int uMode;
+
+        varying vec2 vUv;
+        varying float vDepth;
+
+        void main() {
+          vec3 masks = texture2D(uMasksMap, vUv).rgb;
+          float waterMask = masks.r;   // R通道：曲水镜池区域
+          float lobbyMask = masks.g;   // G通道：中央玻璃大堂内透区
+          float foliageMask = masks.b; // B通道：松树与灌木植被区
+
+          // 1. 若在曲水镜池区域，实时计算流动水波纹折射与高光闪烁
+          vec2 sampleUv = vUv;
+          float waterSpec = 0.0;
+          if (waterMask > 0.02 && uRippleStrength > 0.0) {
+            float w1 = sin(vUv.x * 95.0 + vUv.y * 45.0 - uTime * 2.4);
+            float w2 = cos(vUv.x * 65.0 - vUv.y * 110.0 + uTime * 1.9);
+            float w3 = sin((vUv.x + vUv.y) * 140.0 - uTime * 3.1);
+            vec2 rippleOffset = vec2(w1 + w2 * 0.6, w2 + w3 * 0.6) * 0.0016 * waterMask * uRippleStrength;
+            sampleUv = clamp(vUv + rippleOffset, 0.001, 0.999);
+            waterSpec = pow(max(0.0, (w1 * 0.5 + w2 * 0.3 + w3 * 0.2)), 4.0) * 0.22 * waterMask * uRippleStrength;
+          }
+
+          vec3 baseCol = texture2D(uColorMap, sampleUv).rgb;
+
+          // 2. 从 AI 深度图实时求导计算三维表面法线 (Surface Normal)
+          vec2 texel = vec2(1.0 / 1024.0, 1.0 / 468.0);
+          float dL = texture2D(uDepthMap, vUv - vec2(texel.x * 2.0, 0.0)).r;
+          float dR = texture2D(uDepthMap, vUv + vec2(texel.x * 2.0, 0.0)).r;
+          float dD = texture2D(uDepthMap, vUv - vec2(0.0, texel.y * 2.0)).r;
+          float dU = texture2D(uDepthMap, vUv + vec2(0.0, texel.y * 2.0)).r;
+          vec3 normal = normalize(vec3((dL - dR) * 8.5, (dD - dU) * 8.5, 1.0));
+
+          // 太阳方向向量
+          vec3 sunDir = normalize(vec3(sin(uSunAngle) * 0.75, 0.55, 0.65));
+          float diff = clamp(dot(normal, sunDir), 0.0, 1.0);
+
+          // 模式 3：AI 深度图与表面法线检视模式
+          if (uMode == 3) {
+            vec3 depthTurbo = mix(vec3(0.08, 0.15, 0.38), vec3(0.15, 0.78, 0.65), smoothstep(0.0, 0.55, vDepth));
+            depthTurbo = mix(depthTurbo, vec3(0.98, 0.82, 0.25), smoothstep(0.45, 0.92, vDepth));
+            vec3 normVis = normal * 0.5 + 0.5;
+            gl_FragColor = vec4(mix(depthTurbo, normVis, 0.28), 1.0);
+            return;
+          }
+
+          vec3 finalCol = baseCol;
+
+          // 叠加法线方向动态微光（拖动太阳角度滑块时草坡与松树明暗随之流转）
+          float sunShift = (diff - 0.52) * 0.22 * (1.0 - step(0.92, 1.0 - vDepth));
+          finalCol += finalCol * sunShift;
+
+          // 叠加水面波光高光
+          finalCol += vec3(0.75, 0.90, 0.96) * waterSpec;
+
+          if (uMode == 1) {
+            // 夕阳晚照金辉模式 (Golden Sunset Relighting)
+            vec3 sunsetTint = mix(vec3(1.18, 0.86, 0.65), vec3(1.32, 0.72, 0.42), 1.0 - vDepth);
+            finalCol = finalCol * sunsetTint;
+            finalCol += vec3(0.32, 0.16, 0.04) * diff * foliageMask;
+            finalCol += vec3(0.45, 0.28, 0.10) * lobbyMask * 0.55;
+            finalCol += vec3(0.95, 0.55, 0.20) * waterSpec * 1.8;
+          } else if (uMode == 2) {
+            // 庭院月夜华灯模式 (Blue Hour Night + Warm Interior Glow)
+            float luma = dot(baseCol, vec3(0.299, 0.587, 0.114));
+            vec3 nightCol = mix(baseCol * vec3(0.22, 0.34, 0.54), vec3(0.08, 0.15, 0.28) * luma, 0.5);
+            // 中央玻璃大堂温暖通透的夜景内透金光
+            vec3 warmLobby = baseCol * vec3(1.45, 1.15, 0.72) + vec3(0.42, 0.28, 0.08);
+            finalCol = mix(nightCol, warmLobby, clamp(lobbyMask * 1.35, 0.0, 1.0));
+            // 池底水下夜景蓝绿氛围冷光
+            finalCol += vec3(0.08, 0.32, 0.36) * waterMask * (0.45 + waterSpec * 3.0);
+          }
+
+          gl_FragColor = vec4(finalCol, 1.0);
+        }
+      `,
+    });
+
+    const reliefMesh = new THREE.Mesh(geo, shaderMat);
+    scene.add(reliefMesh);
+
+    // 添加庭院空间悬浮微尘/萤火粒子，增强三维空气纵深感
+    const particleCount = 120;
+    const pGeo = new THREE.BufferGeometry();
+    const pPos = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+      pPos[i * 3] = (Math.random() - 0.5) * 16.0;
+      pPos[i * 3 + 1] = (Math.random() - 0.45) * 6.5;
+      pPos[i * 3 + 2] = Math.random() * 2.8 + 0.2;
+    }
+    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    const pMat = new THREE.PointsMaterial({
+      color: 0xf5e2a8,
+      size: 0.06,
+      transparent: true,
+      opacity: 0.55,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const particles = new THREE.Points(pGeo, pMat);
+    scene.add(particles);
+
+    // ============================================================================
+    // 定义 6 大实景三维交互热点（绑定原图精确 UV 切片与 3D 深度空间坐标）
+    // ============================================================================
+    const NODES = [
+      {
+        key: "pavilion",
+        id: "中景核心层 (Depth: 0.30)",
+        title: "中央禅意门厅与香槟铜格栅冠顶",
+        category: "核心建筑节点 · 01",
+        subtitle: "水平舒展挑檐 · 超白玻幕墙 · 室内山水屏风内透",
+        material: "香槟古铜竖向百叶 / 超白夹胶玻璃 / 荔枝面花岗岩",
+        principle: "框景借景 · 室内外水院视线渗透",
+        desc: "直接基于原参考图的高清像素进行三维深度重建：顶部香槟金竖向格栅的每一根百叶肌理、超白玻幕墙内的朦胧山水屏风与暖色地面倒影均 100% 保留原图照片级质感，并在月夜模式下支持动态内透发光。",
+        pos: new THREE.Vector3(0.2, -0.65, 0.35),
+        camPos: new THREE.Vector3(0.2, -0.45, 7.2),
+        camTarget: new THREE.Vector3(0.2, -0.65, 0.0),
+        cropRect: [0.34, 0.49, 0.34, 0.26], // [x, y, w, h] in normalized image coords
+      },
+      {
+        key: "pond",
+        id: "前景曲水层 (Depth: 0.88)",
+        title: "池底弧纹曲水镜池 (实时 GLSL 水波)",
+        category: "核心水景节点 · 02",
+        subtitle: "原图同心流线石材水底 + 实时可调动态波光折射",
+        material: "双色弧形水波纹石板池底 + 镜面溢流水系",
+        principle: "静水映松 · 池底弧纹与实时微澜叠加",
+        desc: "在完整保留原图左下角池底深浅弧形石材条带、草岸倒影与深碧水色的基础上，通过自定义 GLSL 片元着色器在水池遮罩区叠加了实时流动的微澜折射与阳光波光闪烁。",
+        pos: new THREE.Vector3(-4.2, -3.1, 2.2),
+        camPos: new THREE.Vector3(-3.2, -1.8, 7.6),
+        camTarget: new THREE.Vector3(-4.2, -3.0, 1.5),
+        cropRect: [0.02, 0.72, 0.44, 0.27],
+      },
+      {
+        key: "pine_right",
+        id: "中景名木层 (Depth: 0.62)",
+        title: "东侧特选造型罗汉松与右墙斜影",
+        category: "名木点景节点 · 03",
+        subtitle: "照片级苍劲松针翠盖 · 实时微风拂动与石墙投影",
+        material: "特选百年造型罗汉松 / 芝麻白荔枝面景墙",
+        principle: "以树代山 · 白墙为纸、松影作画",
+        desc: "原图中右侧石墙前的标志性造型松。通过 AI 深度分层与植被遮罩，不仅完整保留了原图细腻的松针簇群与墙面斜向日影，还赋予了松枝随微风轻柔摆动的真实生命力。",
+        pos: new THREE.Vector3(4.9, -0.35, 1.35),
+        camPos: new THREE.Vector3(3.6, -0.1, 7.5),
+        camTarget: new THREE.Vector3(4.9, -0.35, 0.8),
+        cropRect: [0.64, 0.38, 0.22, 0.38],
+      },
+      {
+        key: "mound_left",
+        id: "中前景微地形 (Depth: 0.72)",
+        title: "果岭微地形草坡、修剪灌木球与泰山石",
+        category: "微地形造园 · 04",
+        subtitle: "天鹅绒草坪真实绒感 · 团簇冬青球与天然横纹景石",
+        material: "台湾天鹅绒草坪 / 修剪龟背冬青球 / 泰山原生景石",
+        principle: "虽由人作，宛自天开 · 坡岸藏水",
+        desc: "彻底告别传统三维白模的“光滑塑料圆球”感——直接将原图中细腻的草叶绒感、深浅交错的修剪灌木球与沧桑的泰山景石置换为起伏的三维微地形网格，转动视角即可感受真实的立体坡岸关系。",
+        pos: new THREE.Vector3(-3.1, -1.55, 1.65),
+        camPos: new THREE.Vector3(-2.2, -0.9, 7.8),
+        camTarget: new THREE.Vector3(-3.1, -1.55, 1.0),
+        cropRect: [0.15, 0.62, 0.36, 0.26],
+      },
+      {
+        key: "villa_left",
+        id: "远景建筑层 (Depth: 0.18)",
+        title: "北翼新中式现代叠墅与围合高墙",
+        category: "背景建筑群体 · 05",
+        subtitle: "深灰四坡挑檐屋顶 · 转角全景落地窗与乔木掩映",
+        material: "深灰钛锌板坡屋面 / 银白铝板檐口 / 超白中空玻璃",
+        principle: "前院后堂 · 远近高低多层次空间掩映",
+        desc: "位于西侧围合高墙后方的新中式现代叠墅。在 AI 深度图中处于远景层级（Depth 0.18），当您左右滑动视角时，前景黑松、中景院墙与远景叠墅之间会呈现出真实的物理空间交错视差。",
+        pos: new THREE.Vector3(-7.2, 1.35, -0.15),
+        camPos: new THREE.Vector3(-5.2, 1.1, 8.2),
+        camTarget: new THREE.Vector3(-7.2, 1.35, -0.5),
+        cropRect: [0.01, 0.22, 0.26, 0.42],
+      },
+    ];
+
+    const interactables = [];
+    const hotspotSprites = [];
+
+    function createHotspot(node) {
+      const c = document.createElement("canvas");
+      c.width = 128; c.height = 128;
+      const ctx = c.getContext("2d");
+      ctx.beginPath(); ctx.arc(64, 64, 46, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(14, 20, 18, 0.85)"; ctx.fill();
+      ctx.lineWidth = 6; ctx.strokeStyle = "#f0d59c"; ctx.stroke();
+      ctx.beginPath(); ctx.arc(64, 64, 17, 0, Math.PI * 2);
+      ctx.fillStyle = "#f0d59c"; ctx.fill();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+      sp.position.copy(node.pos);
+      sp.scale.set(0.45, 0.45, 1);
+      sp.userData.node = node;
+      sp.userData.baseY = node.pos.y;
+      scene.add(sp);
+      hotspotSprites.push(sp);
+      interactables.push(sp);
+    }
+
+    NODES.forEach(createHotspot);
+    interactables.push(reliefMesh);
+
+    // 相机平滑飞行过渡
+    const camAnim = {
+      active: false,
+      startPos: new THREE.Vector3(),
+      endPos: new THREE.Vector3(),
+      startTarget: new THREE.Vector3(),
+      endTarget: new THREE.Vector3(),
+      progress: 0,
+      duration: 0.85,
+    };
+
+    function flyTo(pos, target) {
+      camAnim.startPos.copy(camera.position);
+      camAnim.endPos.copy(pos);
+      camAnim.startTarget.copy(controls.target);
+      camAnim.endTarget.copy(target);
+      camAnim.progress = 0;
+      camAnim.active = true;
+    }
+
+    // 根据点击在三维网格上的 UV 自动匹配最近的实景节点
+    function findClosestNodeByPoint(pt) {
+      let best = NODES[0];
+      let minDist = Infinity;
+      for (const n of NODES) {
+        const d = Math.hypot(pt.x - n.pos.x, pt.y - n.pos.y);
+        if (d < minDist) {
+          minDist = d;
+          best = n;
+        }
+      }
+      return best;
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const tooltip = document.getElementById("hover-tooltip");
+    const ttTag = document.getElementById("tt-tag");
+    const ttTitle = document.getElementById("tt-title");
+    let downPos = { x: 0, y: 0 };
+    let currentNode = NODES[0];
+
+    function setPointer(e) {
+      const r = renderer.domElement.getBoundingClientRect();
+      pointer.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    }
+
+    renderer.domElement.addEventListener("pointermove", (e) => {
+      setPointer(e);
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(hotspotSprites, false);
+      if (hits.length > 0 && hits[0].object.userData.node) {
+        const n = hits[0].object.userData.node;
+        document.body.style.cursor = "pointer";
+        ttTag.textContent = n.category;
+        ttTitle.textContent = n.title;
+        tooltip.style.left = `${e.clientX}px`;
+        tooltip.style.top = `${e.clientY}px`;
+        tooltip.classList.add("visible");
+      } else {
+        document.body.style.cursor = "grab";
+        tooltip.classList.remove("visible");
+      }
+    });
+
+    renderer.domElement.addEventListener("pointerdown", (e) => {
+      downPos.x = e.clientX; downPos.y = e.clientY;
+    });
+
+    renderer.domElement.addEventListener("pointerup", (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 6) return;
+      setPointer(e);
+      raycaster.setFromCamera(pointer, camera);
+      const spHits = raycaster.intersectObjects(hotspotSprites, false);
+      if (spHits.length > 0 && spHits[0].object.userData.node) {
+        openModal(spHits[0].object.userData.node);
+        return;
+      }
+      const meshHits = raycaster.intersectObject(reliefMesh, false);
+      if (meshHits.length > 0) {
+        const n = findClosestNodeByPoint(meshHits[0].point);
+        openModal(n);
+      }
+    });
+
+    const modalBackdrop = document.getElementById("exhibit-modal");
+    const cropCanvas = document.getElementById("modal-crop-canvas");
+    const cropCtx = cropCanvas.getContext("2d");
+
+    function openModal(node) {
+      currentNode = node;
+      document.getElementById("modal-category").textContent = node.category;
+      document.getElementById("modal-title").textContent = node.title;
+      document.getElementById("modal-subtitle").textContent = node.subtitle;
+      document.getElementById("spec-id").textContent = node.id;
+      document.getElementById("spec-material").textContent = node.material;
+      document.getElementById("spec-principle").textContent = node.principle;
+      document.getElementById("modal-desc").textContent = node.desc;
+      document.getElementById("modal-caption").textContent = `原图高清局部切片 · ${node.title}`;
+
+      if (refImageElement) {
+        const [rx, ry, rw, rh] = node.cropRect;
+        const iw = refImageElement.width;
+        const ih = refImageElement.height;
+        cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+        cropCtx.drawImage(
+          refImageElement,
+          rx * iw, ry * ih, rw * iw, rh * ih,
+          0, 0, cropCanvas.width, cropCanvas.height
+        );
+      }
+
+      flyTo(node.camPos, node.camTarget);
+      modalBackdrop.classList.add("open");
+    }
+
+    function closeModal() {
+      modalBackdrop.classList.remove("open");
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    document.getElementById("modal-close").addEventListener("click", closeModal);
+    modalBackdrop.addEventListener("click", (e) => { if (e.target === modalBackdrop) closeModal(); });
+
+    // UI 绑定
+    const selectMode = document.getElementById("select-hdr-mode");
+    const btnDepth = document.getElementById("btn-toggle-depth");
+
+    function setShaderMode(m) {
+      uniforms.uMode.value = m;
+      selectMode.value = String(m);
+      btnDepth.classList.toggle("active", m === 3);
+      if (m === 0) scene.background.setHex(0xd5e0e6);
+      else if (m === 1) scene.background.setHex(0xd69e72);
+      else if (m === 2) scene.background.setHex(0x0d1726);
+      else scene.background.setHex(0x0b101e);
+    }
+
+    selectMode.addEventListener("change", (e) => setShaderMode(parseInt(e.target.value, 10)));
+    btnDepth.addEventListener("click", () => {
+      setShaderMode(uniforms.uMode.value === 3 ? 0 : 3);
+    });
+
+    document.getElementById("btn-modal-time").addEventListener("click", () => {
+      const next = (uniforms.uMode.value + 1) % 3;
+      setShaderMode(next);
+      closeModal();
+    });
+
+    document.getElementById("btn-modal-voice").addEventListener("click", () => {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(`${currentNode.title}。${currentNode.desc}`);
+      u.lang = "zh-CN";
+      window.speechSynthesis.speak(u);
+    });
+
+    document.getElementById("btn-modal-next").addEventListener("click", () => {
+      const idx = NODES.indexOf(currentNode);
+      openModal(NODES[(idx + 1) % NODES.length]);
+    });
+
+    document.getElementById("btn-modal-reset-cam").addEventListener("click", () => {
+      closeModal();
+      flyTo(BASE_CAM_POS, new THREE.Vector3(0, 0, 0.5));
+    });
+
+    document.querySelectorAll(".cam-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".cam-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const key = btn.dataset.cam;
+        if (key === "photo") {
+          flyTo(BASE_CAM_POS, new THREE.Vector3(0, 0, 0.5));
+        } else {
+          const found = NODES.find((n) => n.key === key);
+          if (found) flyTo(found.camPos, found.camTarget);
+        }
+      });
+    });
+
+    let hotspotsOn = true;
+    const btnHotspots = document.getElementById("btn-toggle-hotspots");
+    btnHotspots.addEventListener("click", () => {
+      hotspotsOn = !hotspotsOn;
+      btnHotspots.classList.toggle("active", hotspotsOn);
+      hotspotSprites.forEach((s) => (s.visible = hotspotsOn));
+    });
+
+    const btnHdr = document.getElementById("btn-toggle-hdr");
+    const hdrPanel = document.getElementById("hdr-panel");
+    btnHdr.addEventListener("click", () => {
+      btnHdr.classList.toggle("active");
+      hdrPanel.classList.toggle("hidden");
+    });
+
+    document.getElementById("slider-depth-scale").addEventListener("input", (e) => {
+      const v = parseFloat(e.target.value);
+      uniforms.uDepthScale.value = v;
+      document.getElementById("val-depth-scale").textContent = v.toFixed(2);
+    });
+
+    document.getElementById("slider-sun-angle").addEventListener("input", (e) => {
+      const deg = parseFloat(e.target.value);
+      uniforms.uSunAngle.value = THREE.MathUtils.degToRad(deg);
+      document.getElementById("val-sun-angle").textContent = `${deg}°`;
+    });
+
+    document.getElementById("slider-water-ripple").addEventListener("input", (e) => {
+      const v = parseFloat(e.target.value);
+      uniforms.uRippleStrength.value = v;
+      document.getElementById("val-water-ripple").textContent = v.toFixed(2);
+    });
+
+    let autoSwayAmount = 0.6;
+    document.getElementById("slider-auto-sway").addEventListener("input", (e) => {
+      autoSwayAmount = parseFloat(e.target.value);
+      document.getElementById("val-auto-sway").textContent = autoSwayAmount.toFixed(2);
+    });
+
+    if (window.innerWidth <= 760) {
+      hdrPanel.classList.add("hidden");
+      btnHdr.classList.remove("active");
+    }
+
+    const timer = new THREE.Timer();
+    timer.connect(document);
+
+    function animate() {
+      timer.update();
+      const dt = timer.getDelta();
+      const t = timer.getElapsed();
+      uniforms.uTime.value = t;
+
+      if (camAnim.active) {
+        camAnim.progress += dt / camAnim.duration;
+        if (camAnim.progress >= 1.0) {
+          camAnim.progress = 1.0;
+          camAnim.active = false;
+        }
+        const k = THREE.MathUtils.smoothstep(camAnim.progress, 0, 1);
+        camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, k);
+        controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, k);
+      } else if (autoSwayAmount > 0.01) {
+        // 轻柔的呼吸式立体视差摆动，让用户即使不触碰屏幕也能直观看到 3D 远近层次交错感
+        camera.position.x += Math.cos(t * 0.65) * 0.0045 * autoSwayAmount;
+        camera.position.y += Math.sin(t * 0.9) * 0.0022 * autoSwayAmount;
+      }
+
+      controls.update(dt);
+
+      if (hotspotsOn) {
+        hotspotSprites.forEach((sp, i) => {
+          sp.position.y = sp.userData.baseY + Math.sin(t * 2.5 + i * 1.2) * 0.06;
+        });
+      }
+
+      particles.rotation.y = Math.sin(t * 0.15) * 0.08;
+      renderer.render(scene, camera);
+    }
+
+    renderer.setAnimationLoop(animate);
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
