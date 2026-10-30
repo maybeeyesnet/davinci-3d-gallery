@@ -376,11 +376,25 @@
     const refImage = new Image();
     refImage.src = './reference.png';
 
+    const texLoader = new THREE.TextureLoader();
+    const texOrig = texLoader.load('./reference.png');
+    const texBg = texLoader.load('./marble_bg_inpainted.jpg');
+    const texFg = texLoader.load('./marble_fg_rgba.png');
+    [texOrig, texBg, texFg].forEach(t => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.minFilter = THREE.LinearFilter;
+      t.magFilter = THREE.LinearFilter;
+      t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    });
+
     // Uniforms for our interactive Anisotropic 3D Gaussian Splatting renderer
     const gsUniforms = {
-      uSplatScale: { value: 1.05 },
+      uOrigMap: { value: texOrig },
+      uBgMap: { value: texBg },
+      uFgMap: { value: texFg },
+      uSplatScale: { value: 1.00 },
       uOccAlpha: { value: 1.0 },
-      uZStretch: { value: 1.15 },
+      uZStretch: { value: 1.0 },
       uRenderMode: { value: 0 }, // 0=Photoreal Splat, 1=Particle Dissect, 2=Ellipsoid Ring, 3=Depth Rainbow
       uTime: { value: 0 }
     };
@@ -391,19 +405,17 @@
       const buf = await resp.arrayBuffer();
       const numSplats = buf.byteLength / 32;
       document.getElementById('st-total').textContent = numSplats.toLocaleString() + ' 颗';
-      document.getElementById('load-badge').textContent = '已就绪 (60 FPS)';
+      document.getElementById('load-badge').textContent = '已就绪 (高清 60FPS)';
 
       const f32 = new Float32Array(buf);
       const u8 = new Uint8Array(buf);
 
       const centers = new Float32Array(numSplats * 3);
-      const scales = new Float32Array(numSplats * 3);
+      const scales = new Float32Array(numSplats * 2);
+      const splatUvs = new Float32Array(numSplats * 2);
+      const slopeZs = new Float32Array(numSplats);
       const colors = new Float32Array(numSplats * 4);
-      const quats = new Float32Array(numSplats * 4);
-      const isOccludedBg = new Float32Array(numSplats);
-
-      // The last 19,879 splats in courtyard.splat are the occluded background splats behind the trees
-      const primaryCount = numSplats - 19879;
+      const splatTypes = new Float32Array(numSplats); // 0=bg, 1=occluded_bg, 2=fg_tree
 
       for (let i = 0; i < numSplats; i++) {
         const fBase = i * 8;      // 32 bytes = 8 float32s
@@ -413,29 +425,32 @@
         centers[i * 3 + 1] = f32[fBase + 1];
         centers[i * 3 + 2] = f32[fBase + 2];
 
-        scales[i * 3 + 0] = f32[fBase + 3];
-        scales[i * 3 + 1] = f32[fBase + 4];
-        scales[i * 3 + 2] = f32[fBase + 5];
+        scales[i * 2 + 0] = f32[fBase + 3];
+        scales[i * 2 + 1] = f32[fBase + 4];
+
+        const uCoord = f32[fBase + 5];
+        const vCoord = ((u8[bBase + 28] << 8) | u8[bBase + 29]) / 65535.0;
+        const dzNorm = ((u8[bBase + 30] << 8) | u8[bBase + 31]) / 65535.0;
+        splatUvs[i * 2 + 0] = uCoord;
+        splatUvs[i * 2 + 1] = vCoord;
+        slopeZs[i] = dzNorm * 0.50 - 0.25;
 
         colors[i * 4 + 0] = u8[bBase + 24] / 255.0;
         colors[i * 4 + 1] = u8[bBase + 25] / 255.0;
         colors[i * 4 + 2] = u8[bBase + 26] / 255.0;
-        colors[i * 4 + 3] = u8[bBase + 27] / 255.0;
+        const rawAByte = u8[bBase + 27];
 
-        const qw = (u8[bBase + 28] - 128.0) / 128.0;
-        const qx = (u8[bBase + 29] - 128.0) / 128.0;
-        const qy = (u8[bBase + 30] - 128.0) / 128.0;
-        const qz = (u8[bBase + 31] - 128.0) / 128.0;
-        quats[i * 4 + 0] = qx;
-        quats[i * 4 + 1] = qy;
-        quats[i * 4 + 2] = qz;
-        quats[i * 4 + 3] = qw;
-
-        isOccludedBg[i] = colors[i * 4 + 3] < 0.96 ? 1.0 : 0.0;
-        colors[i * 4 + 3] = 0.96;
+        if (rawAByte >= 254) {
+          splatTypes[i] = 2.0; // Foreground tree splat
+        } else if (rawAByte <= 244) {
+          splatTypes[i] = 1.0; // Occluded background splat behind tree
+        } else {
+          splatTypes[i] = 0.0; // Visible background splat
+        }
+        colors[i * 4 + 3] = 1.0;
       }
 
-      // Build Instanced Anisotropic 3D Gaussian Splat Geometry (sorted back-to-front!)
+      // Build Instanced Anisotropic 3D Gaussian Splat Geometry
       const quad = new THREE.PlaneGeometry(2.0, 2.0);
       const instGeo = new THREE.InstancedBufferGeometry();
       instGeo.index = quad.index;
@@ -443,23 +458,25 @@
       instGeo.attributes.uv = quad.attributes.uv;
 
       instGeo.setAttribute('aCenter', new THREE.InstancedBufferAttribute(centers, 3));
-      instGeo.setAttribute('aScale', new THREE.InstancedBufferAttribute(scales, 3));
+      instGeo.setAttribute('aScale', new THREE.InstancedBufferAttribute(scales, 2));
+      instGeo.setAttribute('aSplatUv', new THREE.InstancedBufferAttribute(splatUvs, 2));
+      instGeo.setAttribute('aSlopeZ', new THREE.InstancedBufferAttribute(slopeZs, 1));
       instGeo.setAttribute('aColor', new THREE.InstancedBufferAttribute(colors, 4));
-      instGeo.setAttribute('aQuat', new THREE.InstancedBufferAttribute(quats, 4));
-      instGeo.setAttribute('aIsOcc', new THREE.InstancedBufferAttribute(isOccludedBg, 1));
+      instGeo.setAttribute('aSplatType', new THREE.InstancedBufferAttribute(splatTypes, 1));
 
       const splatMat = new THREE.ShaderMaterial({
         uniforms: gsUniforms,
-        transparent: true,
-        depthWrite: false,
+        transparent: false,
+        depthWrite: true,
         depthTest: true,
         side: THREE.DoubleSide,
         vertexShader: /* glsl */`
           attribute vec3 aCenter;
-          attribute vec3 aScale;
+          attribute vec2 aScale;
+          attribute vec2 aSplatUv;
+          attribute float aSlopeZ;
           attribute vec4 aColor;
-          attribute vec4 aQuat;
-          attribute float aIsOcc;
+          attribute float aSplatType;
 
           uniform float uSplatScale;
           uniform float uOccAlpha;
@@ -467,57 +484,56 @@
           uniform float uTime;
 
           varying vec2 vQuadCoord;
+          varying vec2 vSplatUv;
           varying vec4 vColor;
           varying float vDepthNorm;
-          varying float vIsOcc;
-
-          // Rotate vector by quaternion (x, y, z, w)
-          vec3 quatRotate(vec4 q, vec3 v) {
-            return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-          }
+          varying float vSplatType;
 
           void main() {
             vQuadCoord = position.xy; // in [-1, 1]
+            vSplatUv = aSplatUv;
             vColor = aColor;
-            vIsOcc = aIsOcc;
+            vSplatType = aSplatType;
 
             vec3 center = aCenter;
             center.z *= uZStretch;
 
             // Subtle water wave motion on lower-left pond splats
             if (center.x < -1.5 && center.y < 0.6 && center.z > 0.5) {
-              center.y += sin(center.x * 3.5 + uTime * 2.4) * 0.015;
+              center.y += sin(center.x * 3.5 + uTime * 2.4) * 0.010;
             }
 
-            // Orient the 3D anisotropic Gaussian ellipsoid along surface tangent + billboard blend
-            vec3 scaledLocal = vec3(position.x * aScale.x, position.y * aScale.y, 0.0) * uSplatScale * 1.35;
-            vec3 tangentOffset = quatRotate(aQuat, scaledLocal);
-
-            // Blend 65% surface-tangent orientation (SHARP) + 35% camera-facing billboard so splats never go edge-on thin
-            vec3 camRight = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
-            vec3 camUp    = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
-            vec3 billOffset = (camRight * position.x * aScale.x + camUp * position.y * aScale.y) * uSplatScale * 1.35;
-
-            vec3 finalPos = center + mix(tangentOffset, billOffset, 0.42);
+            // 3D Surface-Tangent quad expansion: tilts along (aScale.x, aScale.y, aSlopeZ) so sloped ground has zero gaps!
+            vec3 offset = vec3(
+              position.x * aScale.x,
+              position.y * aScale.y,
+              position.y * aSlopeZ * uZStretch
+            ) * uSplatScale;
+            vec3 finalPos = center + offset;
 
             // Hide occluded background splats if toggled off
-            if (aIsOcc > 0.5 && uOccAlpha < 0.02) {
+            if (abs(aSplatType - 1.0) < 0.2 && uOccAlpha < 0.05) {
               gl_Position = vec4(0.0, 0.0, 2.0, 0.0);
               return;
             }
 
-            vDepthNorm = clamp((center.z + 5.0) / 11.0, 0.0, 1.0);
+            vDepthNorm = clamp((center.z + 3.5) / 8.0, 0.0, 1.0);
             gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPos, 1.0);
           }
         `,
         fragmentShader: /* glsl */`
+          uniform sampler2D uOrigMap;
+          uniform sampler2D uBgMap;
+          uniform sampler2D uFgMap;
+          uniform float uSplatScale;
           uniform float uOccAlpha;
           uniform int uRenderMode;
 
           varying vec2 vQuadCoord;
+          varying vec2 vSplatUv;
           varying vec4 vColor;
           varying float vDepthNorm;
-          varying float vIsOcc;
+          varying float vSplatType;
 
           vec3 turboColormap(float x) {
             x = clamp(x, 0.0, 1.0);
@@ -530,26 +546,45 @@
 
           void main() {
             float r2 = dot(vQuadCoord, vQuadCoord);
-            if (r2 > 1.0) discard;
+            // When user shrinks splat scale (< 0.94) or enters particle/ring mode, clip to true elliptical Gaussian disc!
+            if ((uSplatScale < 0.94 || uRenderMode == 1 || uRenderMode == 2) && r2 > 1.0) discard;
 
-            // True 2D Gaussian kernel falloff exp(-0.5 * r^2 * sigma)
-            float gauss = exp(-r2 * 2.35);
-            float alpha = gauss * vColor.a * (vIsOcc > 0.5 ? uOccAlpha : 1.0);
+            // Exact sub-splat tangent UV coordinate (stride=2 -> 1/512 in u, 1/234 in v, half-width=0.5*1.08)
+            vec2 subUv = vSplatUv + vQuadCoord * vec2(1.0 / 512.0, 1.0 / 234.0) * (0.54 * uSplatScale);
 
-            vec3 col = vColor.rgb;
+            vec3 hdCol;
+            if (vSplatType > 1.5) {
+              // Foreground Podocarpus/pine tree splat: crisp silhouette alpha test against fg_rgba
+              vec4 fgSample = texture2D(uFgMap, subUv);
+              if (uRenderMode == 0 && fgSample.a < 0.38) discard;
+              hdCol = texture2D(uOrigMap, subUv).rgb;
+            } else if (vSplatType > 0.5) {
+              // Occluded background splat behind tree: seamless transition from orig edge to inpainted stone wall core
+              vec4 fgSample = texture2D(uFgMap, subUv);
+              vec3 origC = texture2D(uOrigMap, subUv).rgb;
+              vec3 bgC = texture2D(uBgMap, subUv).rgb;
+              hdCol = mix(origC, bgC, smoothstep(0.32, 0.68, fgSample.a));
+            } else {
+              // Visible unoccluded courtyard & building splat: 100% lossless original reference texture
+              hdCol = texture2D(uOrigMap, subUv).rgb;
+            }
 
-            if (uRenderMode == 2) {
+            vec3 col = hdCol;
+
+            if (uRenderMode == 1) {
+              // Mode 1: Particle Dissection (shade each Gaussian ellipsoid with 3D spherical falloff)
+              float shade = 0.55 + 0.45 * exp(-r2 * 1.8);
+              col = vColor.rgb * shade;
+            } else if (uRenderMode == 2) {
               // Mode 2: Gaussian Ellipsoid Contour Ring visualization
-              float ring = smoothstep(0.62, 0.78, r2) * (1.0 - smoothstep(0.78, 0.96, r2));
-              col = mix(col * 0.85, vec3(0.45, 0.82, 1.0), ring * 0.9);
-              alpha = max(gauss * 0.85, ring * 0.95);
+              float ring = smoothstep(0.58, 0.76, r2);
+              col = mix(vColor.rgb * 0.8, vec3(0.42, 0.82, 1.0), ring * 0.92);
             } else if (uRenderMode == 3) {
               // Mode 3: 3D Depth Rainbow
               col = turboColormap(vDepthNorm);
             }
 
-            if (alpha < 0.18) discard;
-            gl_FragColor = vec4(col, alpha);
+            gl_FragColor = vec4(col, 1.0);
           }
         `
       });
